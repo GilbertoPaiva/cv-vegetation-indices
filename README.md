@@ -108,11 +108,18 @@ Um pixel só conta como vegetação se `ExGR > 0` **E** passar na trava HSV. Os 
 
 ![Análise multi-imagem](outputs/analise_multi_imagem.png)
 
-| Imagem | ExG (veg%) | VARI médio | Interpretação |
-|---|---|---|---|
-| WhatsApp 17:57 | 8.86% | −0.1365 | baixa cobertura vegetal |
-| WhatsApp 18:00 | 97.08% | −0.0016 | divergência ExG/VARI — possível falso positivo |
-| paisagem-verde | 85.20% | +0.2453 | ambos os índices concordam — resultado mais confiável |
+Aplicação do índice ExG (baseline) sobre as 6 imagens do projeto — celular e drone:
+
+| Imagem | Origem | ExG (veg%) | VARI médio | Interpretação |
+|---|---|---|---|---|
+| WhatsApp 17:57 | celular | 8.86% | −0.1365 | baixa cobertura vegetal |
+| WhatsApp 18:00 | celular | 97.08% | −0.0016 | divergência ExG/VARI — falso positivo |
+| paisagem-verde | celular | 85.20% | +0.2453 | índices concordam — confiável |
+| drone-campo-fazenda | drone | 87.85% | +0.1397 | campo + estrada + céu |
+| drone-vegetação-densa | drone | 99.35% | +0.1744 | vegetação quase total |
+| drone-lavoura-solo | drone | 97.68% | −0.0695 | ExG superestima — solo marrom (corrigido na Etapa 13) |
+
+> Esta tabela usa o ExG ingênuo (`> 0`). A **segmentação aprimorada** (acima) corrige os falsos positivos — `drone-lavoura-solo` cai de 97.68% para 39.1% real.
 
 ### Histogramas
 
@@ -126,14 +133,21 @@ Um pixel só conta como vegetação se `ExGR > 0` **E** passar na trava HSV. Os 
 
 ```
 cv-vegetation-indices/
-├── images/                  # imagens originais capturadas
+├── images/                  # imagens de entrada (celular + drone)
+│   ├── paisagem-verde.jpeg          # imagem principal (etapas 1–12)
+│   ├── WhatsApp ... 17.57.38.jpeg    # captura celular (multi-imagem)
+│   ├── WhatsApp ... 18.00.46.jpeg    # captura celular (multi-imagem)
+│   ├── drone-campo-fazenda.jpg       # drone — segmentação aprimorada (etapa 13)
+│   ├── drone-vegetacao-densa.jpg     # drone — teste de cobertura densa
+│   └── drone-lavoura-solo.jpg        # drone — teste solo vs. vegetação
 ├── notebooks/
-│   └── analise_indices_vegetacao.ipynb   # pipeline completo
-├── outputs/                 # todas as imagens geradas
+│   └── analise_indices_vegetacao.ipynb   # pipeline completo (13 etapas)
+├── outputs/                 # imagens geradas pelo notebook
 │   ├── grid_pipeline_completo.png
 │   ├── comparativo_indices.png
 │   ├── comparacao_filtros.png
 │   ├── comparacao_segmentacao.png
+│   ├── segmentacao_aprimorada.png
 │   ├── analise_multi_imagem.png
 │   ├── segmentacao_exg.png
 │   ├── histograma_exg.png
