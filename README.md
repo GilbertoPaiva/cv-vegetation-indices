@@ -85,6 +85,23 @@ O **bilateral** apresenta maior PSNR porque preserva bordas — afasta menos a i
 
 Otsu segmenta por **brilho** — não distingue verde de outras superfícies igualmente iluminadas. ExG segmenta por **assinatura espectral de crominância**, detectando especificamente a dominância de verde sobre vermelho e azul.
 
+### Segmentação aprimorada — ExGR + Otsu + trava HSV
+
+![Segmentação aprimorada](outputs/segmentacao_aprimorada.png)
+
+A segmentação `ExG > 0` ingênua produz **falsos positivos**: marca céu, solo claro e superfícies cinzas como vegetação. A versão aprimorada combina quatro técnicas para corrigir isso:
+
+1. **ExGR = 3G − 2.4R − B** (Meyer & Neto, 2008) — subtrai o excesso de vermelho, separando solo de vegetação
+2. **Threshold de Otsu adaptativo** — o corte é decidido pelos dados, não fixado em zero
+3. **Trava de saturação (HSV)** — rejeita pixels cinza/dessaturados que não são verdes de fato
+4. **Filtro de área mínima** — remove regiões pequenas antes de desenhar contornos
+
+| Imagem (drone) | ExG > 0 (antigo) | ExGR+Otsu+HSV (novo) | Leitura |
+|---|---|---|---|
+| campo-fazenda | 86.7% | 62.0% | céu e estrada excluídos |
+| vegetação-densa | 99.6% | 75.1% | sombras entre folhas excluídas |
+| lavoura-solo | 97.4% | **14.7%** | solo marrom era quase todo falso positivo |
+
 ### Análise multi-imagem
 
 ![Análise multi-imagem](outputs/analise_multi_imagem.png)
