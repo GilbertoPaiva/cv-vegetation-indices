@@ -89,18 +89,20 @@ Otsu segmenta por **brilho** — não distingue verde de outras superfícies igu
 
 ![Segmentação aprimorada](outputs/segmentacao_aprimorada.png)
 
-A segmentação `ExG > 0` ingênua produz **falsos positivos**: marca céu, solo claro e superfícies cinzas como vegetação. A versão aprimorada combina quatro técnicas para corrigir isso:
+A segmentação `ExG > 0` ingênua produz **falsos positivos**: marca céu, solo claro e superfícies cinzas como vegetação. A versão final combina quatro técnicas com **testes absolutos de cor**:
 
 1. **ExGR = 3G − 2.4R − B** (Meyer & Neto, 2008) — subtrai o excesso de vermelho, separando solo de vegetação
-2. **Threshold de Otsu adaptativo** — o corte é decidido pelos dados, não fixado em zero
-3. **Trava de saturação (HSV)** — rejeita pixels cinza/dessaturados que não são verdes de fato
+2. **Trava de cor (HSV)** — `H∈[30,95] & S≥40 & V≥30`, rejeita pixels cinza/dessaturados que não são verdes de fato
+3. **Preenchimento de buracos** — fecha vazios internos nas regiões de vegetação
 4. **Filtro de área mínima** — remove regiões pequenas antes de desenhar contornos
 
-| Imagem (drone) | ExG > 0 (antigo) | ExGR+Otsu+HSV (novo) | Leitura |
-|---|---|---|---|
-| campo-fazenda | 86.7% | 62.0% | céu e estrada excluídos |
-| vegetação-densa | 99.6% | 75.1% | sombras entre folhas excluídas |
-| lavoura-solo | 97.4% | **14.7%** | solo marrom era quase todo falso positivo |
+Um pixel só conta como vegetação se `ExGR > 0` **E** passar na trava HSV. Os dois são testes **absolutos** — diferente do Otsu (corte relativo), que em cenas quase totalmente verdes cortaria a própria vegetação, gerando falsos negativos.
+
+| Imagem (drone) | ExG>0 (ingênuo) | ExGR+Otsu+HSV | ExGR+HSV absoluto (final) | Leitura |
+|---|---|---|---|---|
+| campo-fazenda | 86.7% | 62.0% | **63.0%** | céu e estrada excluídos |
+| vegetação-densa | 99.6% | 79.6% | **96.4%** | Otsu cortava vegetação real; absoluto recupera |
+| lavoura-solo | 97.4% | 29.0% | **39.1%** | solo marrom excluído; recupera verde-amarelado |
 
 ### Análise multi-imagem
 
