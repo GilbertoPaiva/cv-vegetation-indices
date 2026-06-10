@@ -66,11 +66,11 @@ Desenvolvido por Woebbecke et al. (1995). Threshold natural em zero: `ExG > 0` �
 
 ![Comparação de filtros](outputs/comparacao_filtros.png)
 
-| Filtro | PSNR (dB) | Custo relativo |
-|---|---|---|
-| Gaussiano σ=1.5 | 25.39 | 1× |
-| Mediana 5×5 | 26.12 | 1.1× |
-| Bilateral d=9 | 32.01 | 1.9× |
+| Filtro | PSNR (dB) | SNR (dB) | Custo relativo |
+|---|---|---|---|
+| Gaussiano σ=1.5 | 25.39 | 18.66 | 1× |
+| Mediana 5×5 | 26.12 | 19.39 | 1.1× |
+| Bilateral d=9 | 32.01 | 25.27 | 1.9× |
 
 O **bilateral** apresenta maior PSNR porque preserva bordas — afasta menos a imagem do original mesmo suavizando ruído. O **Gaussiano** tem menor PSNR por borrar indiscriminadamente.
 
