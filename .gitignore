@@ -4,3 +4,8 @@ __pycache__/
 .ipynb_checkpoints/
 .DS_Store
 .python-version
+artigo/*.aux
+artigo/*.log
+artigo/*.out
+artigo/*.toc
+artigo/*.synctex.gz
