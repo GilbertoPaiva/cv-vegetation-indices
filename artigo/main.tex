@@ -37,13 +37,14 @@
 }
 
 \title{\textbf{Processamento Digital de Imagens Ambientais com Python}\\
-\large Segmentação de Vegetação por Índices Espectrais VARI e ExG}
+\large Dos índices de vegetação (VARI/ExG) a uma metodologia geral de detecção:\\
+\large vegetação, derramamento de óleo e astronomia}
 
 \author{
   Gilberto de Paiva Melo \\
-  \small Matrícula: \rule{3cm}{0.4pt} \quad Turma: \rule{2cm}{0.4pt} \\
   \small Curso de Ciência da Computação --- Computação Gráfica \\
-  \small Avaliação A3 --- Semestre 2025.1
+  \small Turno: Noturno \\
+  \small Avaliação A3 --- Semestre 2026.1
 }
 \date{\today}
 
@@ -61,8 +62,14 @@ bordas (Canny), e segmentação de vegetação por índices espectrais de cromin
 Demonstra-se empiricamente que índices de crominância superam a limiarização de Otsu por
 luminância na distinção de vegetação, e propõe-se uma segmentação aprimorada combinando o
 índice ExGR com uma trava de cor em HSV, capaz de eliminar falsos positivos em solo, céu e
-superfícies acinzentadas. Os experimentos cobrem seis imagens de origem diversa (câmera de
-celular e drone), evidenciando que a escolha do tipo de imagem é parte integrante do algoritmo.
+superfícies acinzentadas. Os experimentos utilizam duas imagens aéreas de drone de alta
+resolução (até 19,9~MP), obtidas de bancos de imagens abertos com processo de seleção
+documentado, cobrindo dois regimes de cena complementares: campo misto e lavoura com solo
+exposto. Por fim, a metodologia é generalizada a dois outros domínios com os mesmos blocos
+algorítmicos: a segmentação da mancha de óleo do acidente \emph{Deepwater Horizon} (imagem
+NASA/MODIS) e a contagem de estrelas no aglomerado M13 (imagem Hubble). Os resultados
+evidenciam que a contribuição é a metodologia --- e que a escolha da imagem é parte
+integrante do algoritmo.
 \\[1ex]
 \textbf{Palavras-chave:} visão computacional; índices de vegetação; VARI; ExG; segmentação; OpenCV.
 \end{abstract}
@@ -79,16 +86,33 @@ e análise de imagens por meio de algoritmos. No contexto atual, a visão comput
 processamento digital de imagens permeiam aplicações que vão de diagnósticos médicos ao
 monitoramento de ecossistemas.
 
-Este projeto integra a \textbf{captura real de imagens} --- realizada pelo próprio aluno com
-câmera de smartphone --- ao posterior tratamento digital em Python. O fio condutor é ambiental:
-quantificar a cobertura vegetal de uma cena diretamente a partir de uma fotografia comum,
-sem sensores especializados. Tal capacidade tem relevância em agricultura de precisão,
-monitoramento de desmatamento e análise de áreas verdes urbanas, onde imagens de satélite são
-caras e pouco frequentes, enquanto um celular captura milhões de pixels instantaneamente.
+Este projeto utiliza \textbf{imagens aéreas de drone de alta resolução} obtidas de bancos de
+imagens abertos na internet, com o processo de busca, seleção e download documentado ---
+modalidade de aquisição prevista na seção~5.1 da proposta. A escolha foi resultado de
+experimentação: em fase exploratória inicial, testou-se fotografia capturada com câmera de
+smartphone, mas o ângulo oblíquo e a mistura espectral degradavam os índices de vegetação;
+a visada vertical (\emph{nadir}) e a alta resolução das imagens de drone produzem resultados
+muito mais limpos. O fio condutor é ambiental: quantificar a cobertura vegetal de uma cena
+diretamente a partir de uma fotografia RGB comum, sem sensores especializados. Tal capacidade
+tem relevância em agricultura de precisão, monitoramento de desmatamento e análise de áreas
+verdes urbanas, onde imagens de satélite multiespectrais são caras e pouco frequentes.
 
 O olho humano distingue o verde com facilidade, mas o computador enxerga apenas números. O
 objetivo central é transformar esses números em uma resposta objetiva: \emph{quais pixels
 correspondem a vegetação e qual o percentual de cobertura.}
+
+\paragraph{O fio condutor deste relatório.} Mais do que um detector de vegetação, este trabalho
+conta uma \textbf{trajetória} e defende uma tese. Partimos da pergunta ambiental e, a cada
+obstáculo, uma decisão de projeto: a foto de celular falhou e migramos para imagens de drone (a
+imagem é parte do algoritmo); a limiarização por brilho (Otsu) segmentou a estrada em vez do
+campo, e a crominância venceu o brilho; o índice ingênuo superestimou a vegetação sobre solo, e
+testes absolutos de cor corrigiram. Ao final, percebemos que a ``receita'' montada ---
+\emph{assinatura $\rightarrow$ limiar absoluto $\rightarrow$ morfologia $\rightarrow$ componentes
+conexos $\rightarrow$ medida} --- não depende do verde. Para prová-lo, aplicamo-la a dois
+domínios de impacto real: a delimitação de uma \textbf{mancha de óleo} no mar (resposta a
+derrames, relevante à indústria de petróleo) e a \textbf{contagem de estrelas} em uma imagem de
+telescópio (ciência fundamental). A mesma metodologia mede cobertura, área e contagem --- e a
+mesma lição (\emph{a assinatura certa vence o brilho}) reaparece em cada domínio.
 
 % ════════════════════════════════════════════════════════════
 \section{Objetivos}
@@ -96,12 +120,14 @@ correspondem a vegetação e qual o percentual de cobertura.}
 
 \subsection{Objetivo Geral}
 Desenvolver um sistema de processamento digital de imagens em Python capaz de analisar imagens
-capturadas pelo aluno, aplicando técnicas de Computação Gráfica para extrair informação
-quantitativa de vegetação e realizar tratamentos visuais com fins analíticos e ambientais.
+reais selecionadas e adquiridas pelo autor, aplicando técnicas de Computação Gráfica para extrair
+informação quantitativa de vegetação e realizar tratamentos visuais com fins analíticos e
+ambientais.
 
 \subsection{Objetivos Específicos}
 \begin{itemize}
-  \item Capturar imagens reais com participação ativa do aluno, documentando equipamentos;
+  \item Adquirir imagens reais de alta resolução, documentando o processo de busca, seleção
+        e download;
   \item Implementar pré-processamento: leitura, conversão de espaço de cores, redimensionamento
         e normalização;
   \item Aplicar ao menos quatro técnicas distintas: filtros de suavização, detecção de bordas,
@@ -109,6 +135,8 @@ quantitativa de vegetação e realizar tratamentos visuais com fins analíticos 
   \item Realizar segmentação de regiões de interesse por limiarização (Otsu) e por índices
         espectrais;
   \item Apresentar resultados comparativos (original $\times$ processado) com análise crítica;
+  \item Demonstrar a \textbf{generalização da metodologia} a outros domínios (derramamento de
+        óleo e astronomia), evidenciando que a contribuição é o método, não um detector específico;
   \item Documentar todo o processo em relatório técnico e código comentado.
 \end{itemize}
 
@@ -176,9 +204,16 @@ Otsu testa todos os limiares possíveis e escolhe o que \textbf{maximiza a vari�
 duas classes} de intensidade. Requer histograma bimodal para funcionar bem.
 
 \subsection{Morfologia matemática}
-Operações sobre máscaras binárias com um elemento estruturante. A \emph{abertura}
-(erosão seguida de dilatação) remove ruído; o \emph{fechamento} (dilatação seguida de erosão)
-preenche buracos.
+Operações com um elemento estruturante. Em \emph{máscaras binárias}, a \emph{abertura}
+(erosão seguida de dilatação) remove ruído e o \emph{fechamento} (dilatação seguida de erosão)
+preenche buracos. Em \emph{imagens em tons de cinza}, o \emph{white top-hat} (original menos sua
+abertura) isola estruturas claras menores que o elemento estruturante --- útil para realçar
+pontos brilhantes (p.~ex.\ estrelas) sobre fundo variável.
+
+\subsection{Equalização de histograma}
+Técnica de realce de contraste que remapeia as intensidades pela função de distribuição acumulada,
+espalhando os tons por toda a faixa. Aplicada à luminância, aumenta o contraste global sem alterar
+as cores. É a contraparte \emph{global} do top-hat (realce \emph{local}).
 
 \subsection{Métricas de fidelidade --- PSNR e SNR}
 \begin{equation}
@@ -198,31 +233,70 @@ O projeto foi desenvolvido em \textbf{Python 3.11} com as bibliotecas OpenCV 4.1
 NumPy 2.4, Matplotlib 3.10, Pillow 12.2 e scikit-image 0.26, em ambiente Jupyter Lab.
 
 \subsection{Aquisição das imagens}
-Foram capturadas três imagens com câmera de smartphone (uma paisagem vegetada e duas cenas
-de teste) e selecionadas três imagens aéreas de drone para avaliar o comportamento do
-\emph{pipeline} sob aquisição em ângulo \emph{nadir} (visada vertical).
+A aquisição seguiu a modalidade de \textbf{download documentado} prevista na seção~5.1 da
+proposta. Em fase exploratória inicial, havia-se testado fotografia capturada com câmera de
+smartphone; constatado que o ângulo oblíquo e a mistura espectral degradavam os índices de
+vegetação, optou-se por imagens aéreas. O processo de busca e seleção, conduzido ativamente
+pelo autor, obedeceu a três critérios objetivos:
+
+\begin{enumerate}
+  \item \textbf{Resolução mínima de 10~MP}, para que o redimensionamento de trabalho não
+        comprometesse a informação espectral;
+  \item \textbf{Visada vertical (\emph{nadir})}, que garante que cada \emph{pixel} represente
+        predominantemente uma única superfície, sem mistura espectral;
+  \item \textbf{Dois regimes de cena complementares}, para estressar a segmentação: campo
+        misto com estrada e céu (\texttt{campo-fazenda}, 19,9~MP --- a imagem principal, onde
+        todo o \emph{pipeline} é demonstrado) e lavoura com solo exposto
+        (\texttt{lavoura-solo}, 11,9~MP --- o caso difícil, usado para validar a segmentação).
+\end{enumerate}
+
+Todas as imagens --- as duas de drone e as duas usadas nas generalizações (Seção~\ref{sec:geral})
+--- foram baixadas de fontes abertas, com origem, licença e justificativa documentadas na
+Tabela~\ref{tab:origem}, e versionadas no repositório do projeto junto ao código que as processa.
+Essa documentação atende ao critério de \emph{participação ativa na aquisição} previsto na
+proposta.
+
+\begin{table}[H]
+\centering
+\caption{Documentação da origem das imagens.}
+\label{tab:origem}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llll}
+\toprule
+\textbf{Imagem} & \textbf{Fonte} & \textbf{Licença} & \textbf{Por que foi escolhida} \\
+\midrule
+\texttt{drone-campo-fazenda} & banco de imagens aberto & livre & 19,9~MP, \emph{nadir}, cena mista (imagem principal) \\
+\texttt{drone-lavoura-solo}  & banco de imagens aberto & livre & 11,9~MP, solo exposto (caso difícil) \\
+\texttt{nasa-deepwater-horizon} & NASA Earth Observatory & domínio público & caso real de mancha de óleo (generalização) \\
+\texttt{hubble-m13-cluster} & NASA/ESA --- Hubble & domínio público & milhares de estrelas (generalização) \\
+\bottomrule
+\end{tabular}}
+\end{table}
 
 \subsection{Pipeline de processamento}
 \begin{enumerate}
   \item \textbf{Aquisição:} leitura com \texttt{cv2.imread()} e conversão BGR~$\rightarrow$~RGB;
   \item \textbf{Pré-processamento:} inspeção de metadados, redimensionamento com
         \texttt{cv2.resize}, conversão para escala de cinza e normalização para $[0,1]$;
-  \item \textbf{Análise inicial:} histograma dos canais R, G e B;
+  \item \textbf{Análise inicial:} histograma dos canais R, G, B e equalização de contraste;
   \item \textbf{Índices:} cálculo de VARI (com máscara de luminância) e ExG;
   \item \textbf{Filtragem:} Gaussiano ($\sigma = 1{,}5$), Mediana ($5\times5$) e Bilateral
         ($d = 9$), avaliados por PSNR e SNR;
   \item \textbf{Detecção de bordas:} Canny com limiares 50 e 130;
   \item \textbf{Segmentação:} Otsu (grayscale) \emph{vs.} ExG, com refino morfológico;
-  \item \textbf{Segmentação aprimorada:} ExGR + trava HSV + preenchimento de buracos;
-  \item \textbf{Visualização:} \emph{grid} comparativo de todos os estágios.
+  \item \textbf{Segmentação aprimorada:} ExGR + trava HSV + refino morfológico;
+  \item \textbf{Visualização:} \emph{grid} comparativo de todos os estágios;
+  \item \textbf{Generalização:} a mesma metodologia aplicada à detecção de óleo (NASA/MODIS) e
+        à contagem de estrelas (Hubble).
 \end{enumerate}
 
 % ════════════════════════════════════════════════════════════
 \section{Resultados e Discussão}
+\label{sec:results}
 % ════════════════════════════════════════════════════════════
 
 \subsection{Aquisição e metadados}
-A imagem principal (\texttt{paisagem-verde.jpeg}) apresentou os seguintes metadados:
+A imagem principal (\texttt{drone-campo-fazenda.jpg}) apresentou os seguintes metadados:
 
 \begin{table}[H]
 \centering
@@ -231,24 +305,44 @@ A imagem principal (\texttt{paisagem-verde.jpeg}) apresentou os seguintes metada
 \toprule
 \textbf{Atributo} & \textbf{Valor} \\
 \midrule
-Resolução        & $2268 \times 4032$ pixels \\
-Número de canais & 3 (R, G, B) \\
-Tipo (dtype)     & \texttt{uint8} (0--255) \\
-Tamanho em disco & 1588,2 KB \\
-Pixel [100, 200] & [20, 34, 19] (verde dominante) \\
+Resolução           & $5464 \times 3640$ pixels (19,9~MP) \\
+Número de canais    & 3 (R, G, B) \\
+Tipo (dtype)        & \texttt{uint8} (0--255) \\
+Tamanho em disco    & 3165,6 KB \\
+Valor médio (R,G,B) & $[97{,}2;\ 117{,}8;\ 56{,}8]$ --- verde dominante \\
+Pixel [100, 200]    & $[165;\ 203;\ 222]$ --- amostra de céu (azul dominante) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \noindent
-O redimensionamento para 1024 px de largura (mantendo a proporção) resultou em
-$1024 \times 1820$ pixels, uma redução de \textbf{79,6\%} no volume de dados --- útil para
-prototipagem rápida.
+A imagem de 19,9~MP foi redimensionada para 1600~px de largura (mantendo a proporção),
+resultando em $1600 \times 1065$ pixels (1,7~MP) --- redução de \textbf{91,4\%} no volume de
+dados. Toda a análise subsequente roda sobre essa versão de trabalho, enquanto os metadados
+acima preservam a resolução original. O valor médio de pixel, com o canal verde (117,8) acima
+do vermelho (97,2) e do azul (56,8), já antecipa numericamente a dominância de vegetação na cena.
+
+\subsection{Pré-processamento: original \emph{vs.} escala de cinza}
+A Figura~\ref{fig:gray} compara a imagem original com sua versão em escala de cinza
+(média ponderada BT.601: $0{,}299R + 0{,}587G + 0{,}114B$). A conversão preserva o brilho mas
+\textbf{descarta a crominância}: na versão cinza, o campo verde, a mata e parte do solo tornam-se
+difíceis de distinguir entre si, enquanto a estrada clara se destaca. Essa observação antecipa o
+resultado central do trabalho --- \emph{brilho não identifica vegetação} --- e motiva o uso de
+índices espectrais de cor.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{original_vs_grayscale.png}
+\caption{Imagem original RGB e sua versão em escala de cinza (BT.601). A perda da informação
+de cor torna vegetação e solo pouco distinguíveis.}
+\label{fig:gray}
+\end{figure}
 
 \subsection{Análise de histograma}
 A Figura~\ref{fig:histogramas} apresenta a distribuição de intensidades dos canais R, G, B e do
-índice ExG. Os três canais ocupam toda a faixa $[0,1]$; o ExG concentra-se em valores positivos
-(média 0,084 na escala normalizada), confirmando dominância de verde na cena.
+índice ExG. Os três canais ocupam toda a faixa $[0,1]$; o ExG concentra-se fortemente em valores
+positivos (média 0,320 na escala normalizada $[-2,+2]$), confirmando ampla dominância de verde na
+cena --- coerente com um campo vegetado visto de cima.
 
 \begin{figure}[H]
 \centering
@@ -265,20 +359,39 @@ A Figura~\ref{fig:histogramas} apresenta a distribuição de intensidades dos ca
 \label{fig:histogramas}
 \end{figure}
 
+\subsection{Equalização de histograma (realce de contraste)}
+A \textbf{equalização de histograma} redistribui as intensidades para ocupar toda a faixa tonal,
+realçando o contraste global. Para não distorcer as cores, equalizou-se apenas a \textbf{luminância}
+(canal Y do espaço YCrCb): o desvio-padrão do brilho subiu de \textbf{49,4 para 72,2}, indicando
+maior espalhamento tonal (Figura~\ref{fig:equaliza}). Vale registrar a conexão com o restante do
+trabalho: a equalização é um realce \emph{global} (uma curva única para a imagem inteira), enquanto
+seu parente \emph{local} --- o \emph{white top-hat} --- reaparece na Seção~\ref{sec:geral} para
+revelar estrelas fracas, ajustando o contraste vizinhança a vizinhança.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{equalizacao_histograma.png}
+\caption{Equalização de histograma na luminância: original, versão equalizada (maior contraste,
+cor preservada) e os histogramas de brilho antes/depois.}
+\label{fig:equaliza}
+\end{figure}
+
 \subsection{Índices de vegetação}
 O cálculo do VARI revelou um problema numérico relevante: em pixels de sombra, o denominador
 $G + R - B$ aproxima-se de zero, gerando \emph{outliers} extremos (valores brutos de
-$-11{.}764$ a $235{.}294$ antes do recorte). A solução adotada foi uma \textbf{máscara de
+$-37$ a $144{.}707$ antes do recorte). A solução adotada foi uma \textbf{máscara de
 luminância}, que zera o índice onde $(R+G+B)/3 < 0{,}1$: foram excluídos
-\textbf{521.887 pixels (5,71\%)} de sombra, alterando a média do VARI de apenas 0,2483 para
-0,2453 --- confirmando que tais pixels eram ruído numérico, não sinal. A
-Figura~\ref{fig:indices} mostra os mapas de VARI e ExG.
+\textbf{7.457 pixels (0,44\%)} de sombra --- poucos, já que a imagem aérea é bem iluminada ---,
+alterando a média do VARI de apenas 0,1392 para 0,1391, o que confirma que tais pixels eram
+ruído numérico, e não sinal. A Figura~\ref{fig:indices} mostra os mapas de VARI e ExG.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{comparativo_indices.png}
 \caption{Imagem original, mapa VARI (com máscara de luminância) e mapa ExG.
-Escala \texttt{RdYlGn}: vermelho indica ausência e verde indica presença de vegetação.}
+Escala \texttt{RdYlGn}: vermelho indica ausência e verde indica presença de vegetação.
+Exibição com realce de contraste --- VARI em $\pm0{,}4$ e ExG em \emph{range} simétrico
+centrado no limiar físico 0 (amarelo) ---, sem alteração dos dados subjacentes.}
 \label{fig:indices}
 \end{figure}
 
@@ -294,23 +407,61 @@ Figura~\ref{fig:filtros} mostra o resultado visual.
 \toprule
 \textbf{Filtro} & \textbf{PSNR (dB)} & \textbf{SNR (dB)} & \textbf{Tempo (ms)} \\
 \midrule
-Gaussiano $\sigma=1{,}5$ & 25,39 & 18,66 & 50,3 \\
-Mediana $5\times5$       & 26,12 & 19,39 & 63,8 \\
-Bilateral $d=9$          & \textbf{32,01} & \textbf{25,27} & 109,9 \\
+Gaussiano $\sigma=1{,}5$ & 33,16 & 26,06 & 11,3 \\
+Mediana $5\times5$       & 32,81 & 25,71 & 10,7 \\
+Bilateral $d=9$          & \textbf{34,08} & \textbf{26,98} & 16,5 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \noindent
-O filtro \textbf{bilateral} obteve o maior PSNR e SNR: por preservar bordas, afasta-se menos da
-imagem original, sendo o mais fiel numericamente apesar de visualmente suave. O Gaussiano,
-que borra indiscriminadamente, foi o menos fiel.
+O filtro \textbf{bilateral} obteve o maior PSNR e SNR: por preservar bordas enquanto suaviza,
+afasta-se menos da imagem original, sendo o mais fiel numericamente. Como a imagem aérea tem
+pouco ruído, os três filtros ficam próximos (32,8--34,1~dB); a \textbf{mediana}, que substitui
+cada pixel pelo valor mediano da vizinhança, foi a que mais alterou a textura fina do campo,
+ficando com o menor PSNR. Os tempos são baixos (10--17~ms) por operarem sobre a versão de
+trabalho de 1,7~MP.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{comparacao_filtros.png}
 \caption{Comparação visual entre original e os filtros Gaussiano, Mediana e Bilateral.}
 \label{fig:filtros}
+\end{figure}
+
+\subsection{Detecção de bordas: discussão dos limiares do Canny}
+O operador de Canny foi aplicado sobre a imagem pré-suavizada pelo Gaussiano (que reduz bordas
+espúrias de textura), testando-se três pares de limiares de histerese
+(Figura~\ref{fig:canny}). O percentual de pixels classificados como borda quantifica o
+compromisso:
+
+\begin{table}[H]
+\centering
+\caption{Efeito dos limiares de histerese no Canny.}
+\label{tab:canny}
+\begin{tabular}{lcl}
+\toprule
+\textbf{Limiares ($t_1/t_2$)} & \textbf{Pixels de borda} & \textbf{Comportamento} \\
+\midrule
+30/90 (baixos)   & 1,36\% & captura textura fina da plantação --- ruidoso \\
+50/130 (adotado) & 0,71\% & estrada, horizonte e talhões contínuos \\
+150/250 (altos)  & 0,04\% & só contornos fortes --- bordas fragmentadas \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+O par \textbf{50/130} foi adotado por equilibrar os extremos, em linha com o 50/150 sugerido
+na proposta (``ajustáveis''). Note-se que o mapa de bordas é, por definição, uma imagem de
+\textbf{fundo preto com linhas brancas}: preto significa ``ausência de borda'', não erro de
+processamento.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{canny_limiares.png}
+\caption{Original e mapas de borda do Canny com limiares 30/90, 50/130 e 150/250. Limiares
+baixos retêm textura; altos fragmentam contornos.}
+\label{fig:canny}
 \end{figure}
 
 \subsection{Segmentação: Otsu \emph{vs.} ExG}
@@ -324,18 +475,20 @@ A Tabela~\ref{tab:segmentacao} e a Figura~\ref{fig:segmentacao} contrastam os do
 \toprule
 \textbf{Método} & \textbf{Threshold} & \textbf{Cobertura} & \textbf{Regiões} \\
 \midrule
-Otsu (grayscale) & 0,5294 & 13,08\% & 259 \\
-ExG fixo ($>0$)  & 0,0000 & 82,24\% & 150 \\
+Otsu (grayscale) & 0,5529 & 17,37\% & 3 \\
+ExG fixo ($>0$)  & 0,0000 & 82,93\% & 14 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \noindent
-Otsu segmenta por \textbf{brilho}: o limiar 0,53 separa pixels claros de escuros, detectando
-apenas 13\% e fragmentando a cena em 259 regiões. O ExG segmenta por \textbf{assinatura
-espectral}, detectando 82\% em apenas 150 regiões coerentes. Conclui-se que, para imagens RGB
-de campo, a limiarização por índice espectral é metodologicamente superior à de Otsu por
-luminância, que descarta a informação de crominância que define a vegetação.
+Otsu segmenta por \textbf{brilho}: o limiar 0,55 separa pixels claros de escuros e acaba marcando
+justamente a \textbf{estrada de terra clara} (e o céu) --- ou seja, \emph{exatamente o que não é
+vegetação} ---, cobrindo apenas 17\% em 3 regiões. O ExG segmenta por \textbf{assinatura espectral
+de crominância} e detecta o campo verde (83\%) em 14 regiões coerentes, excluindo estrada e céu.
+Conclui-se que, para imagens RGB de campo, a limiarização por índice espectral é metodologicamente
+superior à de Otsu por luminância, que descarta a informação de crominância que define a vegetação
+--- podendo, inclusive, segmentar o alvo errado.
 
 \begin{figure}[H]
 \centering
@@ -355,95 +508,237 @@ uniformemente verdes. A Tabela~\ref{tab:aprimorada} quantifica a correção.
 
 \begin{table}[H]
 \centering
-\caption{Evolução da segmentação em três imagens de drone (\% de vegetação).}
+\caption{Evolução da segmentação nas duas imagens do projeto (\% de vegetação).}
 \label{tab:aprimorada}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lccc}
 \toprule
 \textbf{Imagem} & \textbf{ExG$>$0 (ingênuo)} & \textbf{ExGR+HSV (final)} & \textbf{Leitura} \\
 \midrule
-campo-fazenda    & 86,7\% & 63,0\% & céu e estrada excluídos \\
-vegetação-densa  & 99,6\% & 96,4\% & recupera vegetação real \\
-lavoura-solo     & 97,4\% & 39,1\% & solo marrom excluído \\
+campo-fazenda    & 86,7\% & 63,8\% & céu e estrada excluídos \\
+lavoura-solo     & 97,4\% & 40,2\% & solo excluído, cultura verde preservada \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
+
+\noindent
+Na \texttt{lavoura-solo}, a queda é a mais acentuada (97,4\% $\rightarrow$ 40,2\%): o ExGR
+descarta o solo avermelhado (que tem $\text{ExGR} < 0$), retendo apenas a cultura verde da
+metade esquerda da cena. Um detalhe de implementação foi decisivo: a plantação aparece como
+\textbf{fileiras finas de verde separadas por sulcos de terra}; aplicar a \emph{abertura}
+morfológica antes do \emph{fechamento} apagava essas fileiras (resultado anterior de apenas
+15,4\%). Invertendo a ordem --- \textbf{fechamento primeiro}, que une as fileiras num bloco de
+cultura, seguido de uma abertura suave ($3\times3$) --- a vegetação verde real (\textasciitilde45\%
+da imagem) é preservada, sem readmitir o solo.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{segmentacao_aprimorada.png}
-\caption{Antigo \emph{vs.} aprimorado: o céu e a estrada deixam de ser classificados como
-vegetação. Da esquerda para a direita: original, máscara ingênua, máscara final e contornos
-filtrados sobre a imagem.}
+\caption{Histórico $\rightarrow$ final nas duas imagens. Da esquerda para a direita: original,
+máscara ExG$>$0 (histórico, preservada como registro), máscara ExGR+HSV (final) e vegetação
+\textbf{destacada por dessaturação} --- a região detectada mantém a cor original e o resto da
+cena é exibido em cinza, evidenciando exatamente o que foi (e o que não foi) classificado.}
 \label{fig:aprimorada}
 \end{figure}
 
-\subsection{Análise multi-imagem}
-O \emph{pipeline} foi aplicado às seis imagens do projeto (Tabela~\ref{tab:multi},
-Figura~\ref{fig:multi}).
+\subsection{Análise comparativa entre as duas imagens}
+O \emph{pipeline} foi aplicado às duas imagens do projeto (Tabela~\ref{tab:multi},
+Figura~\ref{fig:multi}), que representam dois regimes de cena complementares.
 
 \begin{table}[H]
 \centering
-\caption{Análise multi-imagem com índice ExG (\emph{baseline}).}
+\caption{Análise comparativa com índice ExG (\emph{baseline}).}
 \label{tab:multi}
 \begin{tabular}{llcc}
 \toprule
-\textbf{Imagem} & \textbf{Origem} & \textbf{Veg.\ (\%)} & \textbf{VARI médio} \\
+\textbf{Imagem} & \textbf{Regime de cena} & \textbf{Veg.\ (\%)} & \textbf{VARI médio} \\
 \midrule
-WhatsApp 17:57       & celular & 8,86  & $-0{,}1365$ \\
-WhatsApp 18:00       & celular & 97,08 & $-0{,}0016$ \\
-paisagem-verde       & celular & 85,20 & $+0{,}2453$ \\
-drone-campo-fazenda  & drone   & 87,85 & $+0{,}1397$ \\
-drone-vegetação-densa& drone   & 99,35 & $+0{,}1744$ \\
-drone-lavoura-solo   & drone   & 97,68 & $-0{,}0695$ \\
+drone-campo-fazenda  & campo misto (estrada, céu) & 87,85 & $+0{,}1397$ \\
+drone-lavoura-solo   & lavoura com solo exposto   & 97,68 & $-0{,}0695$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \noindent
 Destaca-se a divergência na imagem \texttt{drone-lavoura-solo}: o ExG indica 97,68\% de
-vegetação, mas o VARI médio é negativo ($-0{,}0695$). Trata-se de uma superestimação do ExG
-sobre solo avermelhado --- precisamente o falso positivo que a segmentação aprimorada corrige
-(de 97,68\% para 39,1\%).
+vegetação, mas o VARI médio é negativo ($-0{,}0695$). Quando os dois índices \textbf{concordam}
+(como na imagem principal), a estimativa é confiável; quando \textbf{divergem}, há um
+alerta de falso positivo --- aqui, a superestimação do ExG sobre solo avermelhado, precisamente
+o erro que a segmentação aprimorada corrige (de 97,68\% para 40,2\%, retendo a cultura verde
+e descartando o solo).
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{analise_multi_imagem.png}
-\caption{Original, VARI e ExG para as seis imagens (celular e drone).}
+\caption{Original, mapa VARI (exibição $\pm0{,}4$) e detecção ExG destacada por dessaturação
+para as duas imagens do projeto. Na \texttt{lavoura-solo}, o VARI negativo (vermelho) denuncia
+o erro do ExG --- e o destaque o torna visível: o solo marrom permanece \emph{em cor}, ou seja,
+foi incluído indevidamente na máscara de vegetação.}
 \label{fig:multi}
 \end{figure}
 
-\subsection{Pipeline completo}
-A Figura~\ref{fig:grid} consolida todos os estágios em um único painel.
+\subsection{Pipeline completo (vegetação)}
+A Figura~\ref{fig:grid} consolida todos os estágios do \emph{pipeline} de vegetação em um único
+painel.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{grid_pipeline_completo.png}
-\caption{Grid comparativo $2\times5$ com todos os estágios do pipeline, gerado a 300 dpi.}
+\caption{Grid comparativo $2\times5$ com todos os estágios do pipeline de vegetação.}
 \label{fig:grid}
 \end{figure}
+
+% ════════════════════════════════════════════════════════════
+\section{Generalização da Metodologia: Além da Vegetação}
+\label{sec:geral}
+% ════════════════════════════════════════════════════════════
+
+Até aqui, a ``receita'' foi montada para vegetação. Sua estrutura, porém, independe do alvo:
+\emph{assinatura $\rightarrow$ limiar absoluto $\rightarrow$ morfologia $\rightarrow$ componentes
+conexos $\rightarrow$ medida}. As duas subseções a seguir a aplicam, \textbf{sem trocar os
+blocos}, a dois domínios de impacto real --- e a mesma lição (\emph{a assinatura certa vence o
+brilho}) reaparece em ambos.
+
+\subsection{Setor de petróleo: delimitar uma mancha de óleo}
+A metodologia desenvolvida não depende do alvo ser verde: seus blocos --- assinatura
+espectral, testes absolutos em HSV, morfologia, contornos e percentual de área --- segmentam
+qualquer alvo cuja cor se distinga do fundo. Para demonstrá-lo, aplicou-se a \emph{mesma
+receita} a um caso real do setor de petróleo: o derramamento da plataforma
+\emph{Deepwater Horizon} no Golfo do México, registrado pelo sensor MODIS/Terra da NASA em
+24 de maio de 2010 (imagem de domínio público, com fonte documentada~\cite{nasa2010}).
+
+A primeira tentativa segmentou apenas por \textbf{brilho} ($S < 60$ e $V > 140$), supondo que
+o óleo seria sempre claro no \emph{sunglint}. O resultado teve baixa acurácia: as \textbf{nuvens},
+igualmente claras e dessaturadas, entravam como falso positivo (7,1\% da cena, espalhados em
+5 regiões). A correção repete a lição central da vegetação --- \emph{a cor distingue o alvo, o
+brilho engana}. A assinatura real do óleo é a \textbf{temperatura de cor}: o petróleo e o
+dispersante dão à superfície um tom \emph{tan} (quente), com o canal vermelho nitidamente acima
+do azul. Medindo $\text{warm} = R - B$, o óleo apresenta $R-B \approx 20$--$25$, enquanto a água
+($-5$ a $8$) e as nuvens brancas ($\approx 0$) são neutras. O critério acurado
+$R-B \geq 14 \;\wedge\; V > 110 \;\wedge\; S < 110$, com o mesmo refino morfológico, exclui
+nuvens e água e delimita a mancha como uma \textbf{única região coerente de 17,4\%}
+(Figura~\ref{fig:petroleo}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{generalizacao_petroleo.png}
+\caption{Generalização ao setor de petróleo (imagem NASA/MODIS, \emph{Deepwater Horizon},
+24/05/2010). Da esquerda para a direita: original; máscara histórica só por brilho (7,1\%,
+inclui nuvens); máscara acurada por temperatura de cor $R-B$ (17,4\%, nuvens e água excluídas);
+mancha destacada com contornos. O refino morfológico é idêntico ao do \emph{pipeline} de
+vegetação.}
+\label{fig:petroleo}
+\end{figure}
+
+\noindent
+A transferência abre três aplicações diretas no setor:
+
+\begin{table}[H]
+\centering
+\caption{Aplicações da metodologia no setor de petróleo.}
+\label{tab:petroleo}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{ll}
+\toprule
+\textbf{Contexto} & \textbf{Como a metodologia se aplica} \\
+\midrule
+Monitoramento de derrames & contornos e área \% da mancha em imagens de satélite --- este experimento \\
+Faixa de dutos (\emph{right-of-way}) & contornos da vegetação invadindo a faixa de servidão; manutenção preventiva \\
+Detecção indireta de vazamentos & queda de ExG/VARI na vegetação ao longo da linha indica solo contaminado \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\noindent
+\textbf{Limitação:} sem bandas térmicas ou radar, água costeira com sedimento pode
+confundir-se com óleo fino. Em operação real, a detecção RGB atua como \emph{triagem rápida}
+e de baixo custo, priorizando áreas para sensores especializados (SAR).
+
+\subsection{Astronomia: contar estrelas}
+Enquanto a vegetação mede \emph{cobertura} e o óleo mede \emph{área}, a astronomia exercita o
+terceiro uso do mesmo arcabouço: \textbf{contar objetos}. Aplicou-se o \emph{pipeline} a uma
+imagem do aglomerado globular \textbf{M13} obtida pelo Telescópio Espacial Hubble
+(NASA/ESA, domínio público~\cite{hubble}). Aqui a assinatura não é a cor, e sim o \textbf{brilho}:
+uma estrela é um ponto claro sobre o céu negro. Uma primeira versão com limiar global de brilho
+($> 140$) perdia as estrelas mais fracas (apenas 7.736 detectadas). A versão final reaproveita
+\emph{duas peças já usadas no projeto}: (i) o \textbf{white top-hat} --- realce de contraste
+\emph{local} (parente da equalização de histograma) que faz as estrelas fracas saltarem do fundo,
+vizinhança a vizinhança; e (ii) o \textbf{Otsu} --- o mesmo limiar automático da segmentação por
+brilho (Seção~\ref{sec:results}), que escolhe o corte sem número mágico. Em seguida, a função
+\texttt{cv2.connectedComponentsWithStats} --- \emph{a mesma} usada no filtro de área da vegetação
+e do óleo --- agora \textbf{conta}: cada componente conexo isolado é uma estrela. A contagem quase
+dobra, de 7.736 para \textbf{14.616 estrelas} (Figura~\ref{fig:estrelas}); o recorte ampliado
+evidencia a detecção individual.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{generalizacao_estrelas.png}
+\caption{Generalização à astronomia: imagem Hubble do aglomerado M13, mapa de brilho com as
+estrelas contadas por componentes conexos, e recorte ampliado da periferia com cada estrela
+detectada circulada.}
+\label{fig:estrelas}
+\end{figure}
+
+\noindent
+\textbf{Limitação:} no núcleo denso, estrelas vizinhas se fundem em um único componente, de modo
+que a contagem é um \emph{limite inferior}. É a mesma natureza das limitações anteriores
+(sedimento \emph{vs.} óleo; vegetação seca na lavoura): toda detecção por limiar tem um regime
+em que sinal e fundo se confundem. O conjunto dos três domínios --- vegetação, petróleo e
+astronomia --- evidencia que a contribuição do trabalho é a \textbf{metodologia} (assinatura
+$\rightarrow$ limiar absoluto $\rightarrow$ morfologia $\rightarrow$ componentes conexos
+$\rightarrow$ medida), e não um detector específico de vegetação.
 
 % ════════════════════════════════════════════════════════════
 \section{Análise Crítica}
 % ════════════════════════════════════════════════════════════
 
-Os experimentos sustentam três conclusões técnicas:
+Os experimentos sustentam quatro conclusões técnicas:
 
 \begin{enumerate}
-  \item \textbf{Crominância supera luminância.} Para vegetação em imagens RGB, índices de cor
-        (ExG, VARI, ExGR) são superiores à limiarização de Otsu por brilho, que ignora a
-        informação espectral que define a planta.
+  \item \textbf{A assinatura certa supera o brilho.} Para vegetação, índices de crominância
+        (ExG, VARI, ExGR) superam o Otsu por luminância, que chegou a segmentar a estrada em vez
+        do campo. A \emph{mesma} lição reapareceu no óleo: detectar por brilho incluía nuvens;
+        detectar pela temperatura de cor ($R-B$) acertou.
   \item \textbf{Testes absolutos superam testes relativos.} O limiar fixo erra por excesso
         (falsos positivos); o Otsu erra por falta em cenas uniformes (falsos negativos). A
-        combinação \emph{absoluta} ExGR + HSV equilibra os dois extremos.
-  \item \textbf{A imagem é parte do algoritmo.} Fotos de celular em ângulo oblíquo apresentam
-        sombras e misturas de superfície que degradam os índices; imagens de drone em visada
-        \emph{nadir} produzem resultados muito mais limpos, pois cada pixel representa uma única
-        superfície.
+        combinação \emph{absoluta} ExGR + HSV equilibra os dois extremos --- desde que a ordem
+        morfológica respeite a textura do alvo (fechar antes de abrir, para não apagar as
+        fileiras da plantação).
+  \item \textbf{A imagem é parte do algoritmo.} A fase exploratória com fotografia de smartphone
+        em ângulo oblíquo mostrou que sombras e misturas de superfície degradam os índices ---
+        razão da adoção de imagens em visada \emph{nadir}, nas quais cada pixel representa uma
+        única superfície.
+  \item \textbf{A contribuição é a metodologia, não o alvo.} O mesmo arcabouço
+        (assinatura $\rightarrow$ limiar absoluto $\rightarrow$ morfologia $\rightarrow$
+        componentes conexos $\rightarrow$ medida) mediu cobertura vegetal, delimitou uma mancha de
+        óleo e contou estrelas (Tabela~\ref{tab:sintese}). E uma meta-lição honesta o atravessa:
+        \emph{toda detecção por limiar tem um regime em que sinal e fundo se confundem} --- o
+        núcleo do aglomerado, o sedimento na água, a cultura seca na lavoura.
 \end{enumerate}
 
-\paragraph{Limitações.} Imagens de satélite multiespectrais não são adequadas a estes índices,
-projetados para câmeras RGB de superfície. O processamento interno de smartphones (HDR,
-saturação) também pode distorcer a crominância.
+\begin{table}[H]
+\centering
+\caption{Síntese: a mesma metodologia em três domínios.}
+\label{tab:sintese}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llll}
+\toprule
+ & \textbf{Vegetação} & \textbf{Petróleo} & \textbf{Astronomia} \\
+\midrule
+Imagem        & drone (RGB)              & NASA/MODIS               & Hubble (M13) \\
+Assinatura    & verde dominante (ExG/ExGR) & cor quente ($R-B$)     & brilho (ponto claro) \\
+Limiar        & absoluto (0) / trava HSV & absoluto ($R-B\!\geq\!14$) & Otsu (automático) \\
+O que se mede & \% de cobertura          & \% de área da mancha     & contagem de objetos \\
+Resultado     & 63,8\% / 40,2\%          & 17,4\% em 1 região       & 14.616 estrelas \\
+Limite        & cultura seca/esparsa     & sedimento vs.\ óleo fino & núcleo denso (fusão) \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\paragraph{Limitações gerais.} A detecção RGB é uma \emph{triagem} de baixo custo: imagens
+multiespectrais (NIR/NDVI), térmicas ou de radar (SAR) resolvem os casos-limite acima. O
+processamento interno de smartphones (HDR, saturação) também pode distorcer a crominância ---
+mais um motivo para a escolha de imagens de origem controlada.
 
 % ════════════════════════════════════════════════════════════
 \section{Conclusão}
@@ -454,9 +749,14 @@ pré-processamento, análise de histograma, filtragem, detecção de bordas, seg
 visualização --- e vai além ao implementar índices espectrais especializados e uma segmentação
 de alta precisão que elimina falsos positivos. Demonstrou-se que técnicas de processamento de
 imagem extraem informação quantitativa de vegetação invisível a olho nu, e que a qualidade do
-resultado depende tanto do algoritmo quanto da adequação da imagem de entrada. Como trabalho
-futuro, sugere-se a validação com imagens de drone de alta resolução em diferentes culturas e
-a integração com câmeras multiespectrais para o cálculo do NDVI.
+resultado depende tanto do algoritmo quanto da adequação da imagem de entrada. As generalizações
+--- segmentar a mancha da \emph{Deepwater Horizon} (petróleo) e contar 14.616 estrelas no
+aglomerado M13 (astronomia) com os mesmos blocos algorítmicos --- mostram que a contribuição do
+trabalho é a \emph{metodologia} (assinatura $\rightarrow$ limiar absoluto $\rightarrow$ morfologia
+$\rightarrow$ componentes conexos $\rightarrow$ medida), não um detector de verde. Como trabalho
+futuro, sugere-se a validação em séries temporais de imagens aéreas, a integração com câmeras
+multiespectrais (NDVI), o aprofundamento da aplicação petrolífera com radar (SAR) e, na
+astronomia, fotometria por ajuste de PSF para resolver o núcleo do aglomerado.
 
 % ════════════════════════════════════════════════════════════
 \begin{thebibliography}{9}
@@ -491,6 +791,16 @@ OPENCV. \textbf{OpenCV Documentation.} Disponível em: \url{https://docs.opencv.
 
 \bibitem{scikit}
 SCIKIT-IMAGE. \textbf{Documentation.} Disponível em: \url{https://scikit-image.org/docs/stable/}.
+
+\bibitem{nasa2010}
+NASA. \textbf{Oil slick in the Gulf of Mexico} (Deepwater Horizon). Imagem MODIS/Terra,
+24 mai.\ 2010. Domínio público. Disponível em:
+\url{https://commons.wikimedia.org/wiki/File:Deepwater_Horizon_oil_spill_-_May_24,_2010.jpg}.
+
+\bibitem{hubble}
+NASA; ESA. \textbf{Hubble image of globular cluster M13}. Telescópio Espacial Hubble.
+Domínio público. Disponível em:
+\url{https://commons.wikimedia.org/wiki/File:Hubble_image_of_globular_cluster_M13_(opo0840a).jpg}.
 
 \end{thebibliography}
 

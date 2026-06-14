@@ -4,6 +4,8 @@ Pipeline de visão computacional em Python para análise de cobertura vegetal em
 
 > Projeto A3 — Computação Gráfica | Ciência da Computação
 
+**Imagens do projeto:** duas imagens aéreas de drone de **alta resolução** baixadas de bancos de imagens abertos na internet, selecionadas por três critérios documentados — resolução, visada vertical (*nadir*) e regimes de cena complementares. A **imagem principal** é `drone-campo-fazenda.jpg` (19.9 MP, campo misto com estrada e céu), onde todo o pipeline é demonstrado; `drone-lavoura-solo.jpg` (11.9 MP, solo exposto) é o **caso difícil** que valida a segmentação. Em fase exploratória inicial testou-se fotografia de celular, mas o ângulo oblíquo degradava os índices — registro mantido no artigo.
+
 ---
 
 ## Pipeline completo
@@ -40,19 +42,20 @@ Desenvolvido por Woebbecke et al. (1995). Threshold natural em zero: `ExG > 0` �
 
 | Técnica | Detalhes |
 |---|---|
-| Conversão de espaço de cores | BGR → RGB, escala de cinza |
+| Conversão de espaço de cores | BGR → RGB, escala de cinza, HSV |
+| Redimensionamento | 19.9 MP → 1600 px de largura (versão de trabalho) |
 | Separação de canais | R, G, B em `float32` normalizado [0, 1] |
-| Cálculo de índices espectrais | VARI com máscara de luminância, ExG |
+| Cálculo de índices espectrais | VARI com máscara de luminância, ExG, ExGR |
 | Histogramas | Canais R, G, B individuais + distribuição ExG |
-| Filtro Gaussiano | σ = 1.5, PSNR = 25.39 dB |
-| Filtro de Mediana | kernel 5×5, PSNR = 26.12 dB |
-| Filtro Bilateral | d = 9, σColor = 75, PSNR = 32.01 dB |
-| Detecção de bordas (Canny) | limiares 50/130 sobre imagem pré-suavizada |
+| Filtro Gaussiano | σ = 1.5, PSNR = 33.16 dB |
+| Filtro de Mediana | kernel 5×5, PSNR = 32.81 dB |
+| Filtro Bilateral | d = 9, σColor = 75, PSNR = 34.08 dB |
+| Detecção de bordas (Canny) | 3 pares de limiares comparados (30/90, 50/130, 150/250) |
 | Segmentação (Otsu) | limiarização automática por grayscale |
 | Segmentação (ExG) | threshold físico fixo em 0.0 |
 | Morfologia matemática | `MORPH_OPEN` + `MORPH_CLOSE` (kernel 7×7, 2 iterações) |
-| Análise multi-imagem | pipeline encapsulado aplicado a 3 imagens |
-| Métricas | PSNR, SNR, percentual de área segmentada |
+| Análise comparativa | pipeline encapsulado aplicado às 2 imagens (2 regimes de cena) |
+| Métricas | PSNR, SNR, percentual de área segmentada, valor médio de pixel |
 
 ---
 
@@ -68,11 +71,21 @@ Desenvolvido por Woebbecke et al. (1995). Threshold natural em zero: `ExG > 0` �
 
 | Filtro | PSNR (dB) | SNR (dB) | Custo relativo |
 |---|---|---|---|
-| Gaussiano σ=1.5 | 25.39 | 18.66 | 1× |
-| Mediana 5×5 | 26.12 | 19.39 | 1.1× |
-| Bilateral d=9 | 32.01 | 25.27 | 1.9× |
+| Gaussiano σ=1.5 | 33.16 | 26.06 | 1× |
+| Mediana 5×5 | 32.81 | 25.71 | 0.9× |
+| Bilateral d=9 | **34.08** | **26.98** | 1.5× |
 
-O **bilateral** apresenta maior PSNR porque preserva bordas — afasta menos a imagem do original mesmo suavizando ruído. O **Gaussiano** tem menor PSNR por borrar indiscriminadamente.
+O **bilateral** apresenta maior PSNR porque preserva bordas — afasta menos a imagem do original mesmo suavizando ruído. Como a imagem aérea tem pouco ruído, os três filtros ficam próximos (32.8–34.1 dB); a **mediana** é a que mais altera a textura fina do campo, ficando com o menor PSNR.
+
+### Detecção de bordas — Canny com discussão dos limiares
+
+![Canny limiares](outputs/canny_limiares.png)
+
+| Limiares (t1/t2) | Pixels de borda | Comportamento |
+|---|---|---|
+| 30/90 | 1.36% | captura textura fina — ruidoso |
+| **50/130 (adotado)** | 0.71% | estrada, horizonte e talhões contínuos |
+| 150/250 | 0.04% | só contornos fortes — fragmentado |
 
 ### Segmentação: Otsu (grayscale) vs. ExG
 
@@ -80,12 +93,12 @@ O **bilateral** apresenta maior PSNR porque preserva bordas — afasta menos a i
 
 | Método | Threshold | Cobertura | Regiões |
 |---|---|---|---|
-| Otsu (grayscale) | 0.53 | 13% | 259 |
-| ExG > 0 (fixo) | 0.0 | 82% | 150 |
+| Otsu (grayscale) | 0.55 | 17% | 3 |
+| ExG > 0 (fixo) | 0.0 | 83% | 14 |
 
-Otsu segmenta por **brilho** — não distingue verde de outras superfícies igualmente iluminadas. ExG segmenta por **assinatura espectral de crominância**, detectando especificamente a dominância de verde sobre vermelho e azul.
+Otsu segmenta por **brilho** — e acaba marcando justamente a **estrada de terra clara** (e o céu), ou seja, *exatamente o que não é vegetação*. ExG segmenta por **assinatura espectral de crominância**, detectando especificamente o campo verde e excluindo estrada e céu.
 
-### Segmentação aprimorada — ExGR + Otsu + trava HSV
+### Segmentação aprimorada — ExGR + trava HSV
 
 ![Segmentação aprimorada](outputs/segmentacao_aprimorada.png)
 
@@ -98,28 +111,23 @@ A segmentação `ExG > 0` ingênua produz **falsos positivos**: marca céu, solo
 
 Um pixel só conta como vegetação se `ExGR > 0` **E** passar na trava HSV. Os dois são testes **absolutos** — diferente do Otsu (corte relativo), que em cenas quase totalmente verdes cortaria a própria vegetação, gerando falsos negativos.
 
-| Imagem (drone) | ExG>0 (ingênuo) | ExGR+Otsu+HSV | ExGR+HSV absoluto (final) | Leitura |
-|---|---|---|---|---|
-| campo-fazenda | 86.7% | 62.0% | **63.0%** | céu e estrada excluídos |
-| vegetação-densa | 99.6% | 79.6% | **96.4%** | Otsu cortava vegetação real; absoluto recupera |
-| lavoura-solo | 97.4% | 29.0% | **39.1%** | solo marrom excluído; recupera verde-amarelado |
+| Imagem (drone) | ExG>0 (ingênuo) | ExGR+HSV (final) | Leitura |
+|---|---|---|---|
+| campo-fazenda | 86.7% | **63.8%** | céu e estrada excluídos |
+| lavoura-solo | 97.4% | **40.2%** | solo excluído, cultura verde preservada |
 
 ### Análise multi-imagem
 
 ![Análise multi-imagem](outputs/analise_multi_imagem.png)
 
-Aplicação do índice ExG (baseline) sobre as 6 imagens do projeto — celular e drone:
+Aplicação do índice ExG (baseline) sobre as 2 imagens — regimes de cena complementares:
 
-| Imagem | Origem | ExG (veg%) | VARI médio | Interpretação |
+| Imagem | Regime de cena | ExG (veg%) | VARI médio | Interpretação |
 |---|---|---|---|---|
-| WhatsApp 17:57 | celular | 8.86% | −0.1365 | baixa cobertura vegetal |
-| WhatsApp 18:00 | celular | 97.08% | −0.0016 | divergência ExG/VARI — falso positivo |
-| paisagem-verde | celular | 85.20% | +0.2453 | índices concordam — confiável |
-| drone-campo-fazenda | drone | 87.85% | +0.1397 | campo + estrada + céu |
-| drone-vegetação-densa | drone | 99.35% | +0.1744 | vegetação quase total |
-| drone-lavoura-solo | drone | 97.68% | −0.0695 | ExG superestima — solo marrom (corrigido na Etapa 13) |
+| drone-campo-fazenda | campo misto (estrada, céu) | 87.85% | +0.1397 | índices concordam — confiável |
+| drone-lavoura-solo | lavoura com solo exposto | 97.68% | −0.0695 | **divergem** — ExG superestima solo marrom (corrigido na Etapa 13) |
 
-> Esta tabela usa o ExG ingênuo (`> 0`). A **segmentação aprimorada** (acima) corrige os falsos positivos — `drone-lavoura-solo` cai de 97.68% para 39.1% real.
+> Esta tabela usa o ExG ingênuo (`> 0`). A **segmentação aprimorada** (acima) corrige os falsos positivos — `drone-lavoura-solo` cai de 97.68% para 40.2% real (solo excluído, cultura verde preservada graças ao fechamento morfológico aplicado antes da abertura).
 
 ### Histogramas
 
@@ -127,31 +135,49 @@ Aplicação do índice ExG (baseline) sobre as 6 imagens do projeto — celular 
 |---|---|
 | ![Histograma ExG](outputs/histograma_exg.png) | ![Histograma RGB](outputs/histograma_rgb.png) |
 
+### Generalização 1 — setor de petróleo (Etapa 14)
+
+![Generalização petróleo](outputs/generalizacao_petroleo.png)
+
+A metodologia **não depende do verde**. Na imagem NASA/MODIS do derramamento da *Deepwater Horizon* (24/05/2010, domínio público), a 1ª versão por **brilho** (`S<60 & V>140`) incluía nuvens (**7.1%**, espalhado). A assinatura real do óleo é a **cor quente (tan)**: `R−B ≈ 20–25` (água e nuvem ≈ 0). Trocando brilho por **temperatura de cor** (`R−B ≥ 14 & V>110 & S<110`) + o mesmo refino morfológico, a mancha vira uma **região coerente de 17.4%** — a mesma lição "cor vence brilho" da vegetação.
+
+Aplicações no setor: monitoramento de derrames (este experimento), contornos de vegetação invadindo faixas de dutos (*right-of-way*), e queda de ExG/VARI como alerta precoce de vazamento por estresse vegetal. Limitação: água com sedimento pode confundir-se com óleo fino — a detecção RGB é triagem rápida antes de sensores SAR.
+
+### Generalização 2 — astronomia / contagem de objetos (Etapa 15)
+
+![Generalização estrelas](outputs/generalizacao_estrelas.png)
+
+A ideia original do projeto (imagens de telescópio) fecha a demonstração. Na imagem Hubble (NASA/ESA) do aglomerado globular **M13** (domínio público), a assinatura é o **brilho** (estrela = ponto claro no céu negro). O limiar global de brilho perdia as estrelas fracas (7.736); a versão final reusa **duas peças do projeto** — o **white top-hat** (realce de contraste *local*, primo da equalização) revela as fracas e o **mesmo Otsu** da vegetação escolhe o corte automático — e o **mesmo** `connectedComponentsWithStats` do filtro de área **conta**: **14.616 estrelas** (quase o dobro). Limitação: no núcleo denso as estrelas se fundem, então a contagem é um limite inferior. Os três domínios (vegetação → cobertura %, óleo → área, estrelas → contagem) provam que a contribuição é a **metodologia**.
+
 ---
 
 ## Estrutura do projeto
 
 ```
 cv-vegetation-indices/
-├── images/                  # imagens de entrada (celular + drone)
-│   ├── paisagem-verde.jpeg          # imagem principal (etapas 1–12)
-│   ├── WhatsApp ... 17.57.38.jpeg    # captura celular (multi-imagem)
-│   ├── WhatsApp ... 18.00.46.jpeg    # captura celular (multi-imagem)
-│   ├── drone-campo-fazenda.jpg       # drone — segmentação aprimorada (etapa 13)
-│   ├── drone-vegetacao-densa.jpg     # drone — teste de cobertura densa
-│   └── drone-lavoura-solo.jpg        # drone — teste solo vs. vegetação
+├── images/                  # imagens de entrada
+│   ├── drone-campo-fazenda.jpg       # imagem PRINCIPAL (etapas 1–13), 19.9 MP
+│   ├── drone-lavoura-solo.jpg        # caso difícil: solo vs. vegetação, 11.9 MP
+│   ├── nasa-deepwater-horizon.jpg    # NASA/MODIS, domínio público (etapa 14)
+│   └── hubble-m13-cluster.jpg        # Hubble NASA/ESA, domínio público (etapa 15)
 ├── notebooks/
-│   └── analise_indices_vegetacao.ipynb   # pipeline completo (13 etapas)
+│   └── analise_indices_vegetacao.ipynb   # pipeline completo (etapas 1–15)
 ├── outputs/                 # imagens geradas pelo notebook
-│   ├── grid_pipeline_completo.png
-│   ├── comparativo_indices.png
-│   ├── comparacao_filtros.png
-│   ├── comparacao_segmentacao.png
-│   ├── segmentacao_aprimorada.png
-│   ├── analise_multi_imagem.png
-│   ├── segmentacao_exg.png
+│   ├── original_vs_grayscale.png
+│   ├── histograma_rgb.png
 │   ├── histograma_exg.png
-│   └── histograma_rgb.png
+│   ├── comparativo_indices.png
+│   ├── segmentacao_exg.png
+│   ├── analise_multi_imagem.png
+│   ├── comparacao_segmentacao.png
+│   ├── comparacao_filtros.png
+│   ├── canny_limiares.png
+│   ├── grid_pipeline_completo.png
+│   ├── segmentacao_aprimorada.png
+│   ├── generalizacao_petroleo.png
+│   └── generalizacao_estrelas.png
+├── artigo/                  # relatório técnico em LaTeX (main.tex, main.pdf, figuras/)
+├── site/                    # slides da apresentação (HTML, estilo claro/escuro)
 └── README.md
 ```
 
@@ -171,7 +197,7 @@ python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 
 # 3. Instalar dependências
-pip install opencv-python numpy matplotlib pillow scikit-image jupyterlab
+pip install opencv-python numpy matplotlib pillow scikit-image scipy jupyterlab
 
 # 4. Iniciar Jupyter
 jupyter lab
@@ -191,6 +217,7 @@ Abra `notebooks/analise_indices_vegetacao.ipynb` e execute todas as células em 
 | matplotlib | 3.10.9 |
 | pillow | 12.2.0 |
 | scikit-image | 0.26.0 |
+| scipy | (preenchimento de buracos na Etapa 13) |
 | jupyterlab | 4.5.7 |
 
 ---
@@ -199,6 +226,7 @@ Abra `notebooks/analise_indices_vegetacao.ipynb` e execute todas as células em 
 
 - GITELSON, A. A. et al. *Novel algorithms for remote estimation of vegetation fraction*. Remote Sensing of Environment, 2002. — origem do VARI
 - WOEBBECKE, D. M. et al. *Color indices for weed identification under various soil, residue, and lighting conditions*. Transactions of the ASAE, 1995. — origem do ExG
+- MEYER, G. E.; NETO, J. C. *Verification of color vegetation indices for automated crop imaging applications*. Computers and Electronics in Agriculture, 2008. — origem do ExGR
 - GONZALEZ, R. C.; WOODS, R. E. *Processamento Digital de Imagens*. 3. ed. Pearson, 2010.
 - BRADSKI, G.; KAEHLER, A. *Learning OpenCV 4*. O'Reilly Media, 2019.
 - OpenCV Documentation: https://docs.opencv.org/4.x/

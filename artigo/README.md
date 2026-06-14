@@ -7,8 +7,8 @@ Relatório técnico completo da Avaliação A3, preenchido com os resultados rea
 ```
 artigo/
 ├── main.tex        # documento LaTeX completo
-├── figuras/        # 8 figuras geradas pelo notebook
-└── main.pdf        # PDF compilado (13 páginas)
+├── figuras/        # 10 figuras geradas pelo notebook
+└── main.pdf        # PDF compilado (15 páginas)
 ```
 
 ## Como abrir no Overleaf
@@ -21,19 +21,20 @@ artigo/
 
 > O documento usa apenas pacotes padrão (babel, graphicx, booktabs, amsmath, hyperref), então compila no Overleaf sem configuração extra.
 
-## Antes de entregar — preencher
+## Identificação do autor
 
-No início do `main.tex`, complete os campos do autor:
+O bloco `\author{...}` no início do `main.tex` já está preenchido:
 
 ```latex
 \author{
   Gilberto de Paiva Melo \\
-  \small Matrícula: \rule{3cm}{0.4pt} \quad Turma: \rule{2cm}{0.4pt} \\
-  ...
+  \small Curso de Ciência da Computação --- Computação Gráfica \\
+  \small Turno: Noturno \\
+  \small Avaliação A3 --- Semestre 2026.1
 }
 ```
 
-Substitua os `\rule{...}` por sua **matrícula** e **turma**.
+Não há campos de matrícula ou turma a preencher.
 
 ## Estrutura do artigo (13 páginas)
 
