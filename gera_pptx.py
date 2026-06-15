@@ -403,59 +403,19 @@ eye(sl, "Fecho da vegetação · todas as etapas num painel")
 h2(sl, "O pipeline de vegetação, completo")
 
 img(sl, outputs("grid_pipeline_completo.png"), 0.75, 1.88, 11.8, 4.92)
-t(sl, "Original → cinza → 3 filtros → Canny → VARI → ExG → Otsu+morfologia → contornos ExG   ·   Próximo: e se o alvo não for verde?",
+t(sl, "Original → cinza → 3 filtros → Canny → VARI → ExG → Otsu+morfologia → contornos ExG   ·   Próximo: a mesma estrutura conta 17.216 estrelas",
   0.75, 6.88, 11.8, 0.45, sz=11.5, color=MUTED, align=PP_ALIGN.CENTER)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 15 — GENERALIZAÇÃO PETRÓLEO
+# 15 — GENERALIZAÇÃO ESTRELAS
 # ═══════════════════════════════════════════════════════════════════════════════
 sl = slide()
-eye(sl, "Passo 9 · escalando a metodologia · mudança de caminho nº 3")
-h2(sl, "A mesma receita, outro alvo:\npetróleo no Golfo do México", sz=30)
-
-img(sl, outputs("generalizacao_petroleo.png"), 0.75, 1.88, 11.8, 4.28)
-pivot(sl, "Melhorando a acurácia — de novo, cor vence brilho",
-      "Imagem NASA/MODIS da Deepwater Horizon (24/05/2010, domínio público). "
-      "1ª versão: só BRILHO — nuvens também são claras, entravam como falso positivo (7,1%). "
-      "Assinatura real: COR QUENTE (tan) — R − B ≈ 20–25 para óleo vs ≈ 0 para água e nuvens. "
-      "Com R−B ≥ 14 + mesmo refino morfológico: mancha COERENTE de 17,4%. A mesma lição da vegetação.",
-      0.75, 6.26, 11.8, 1.0)
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 16 — APLICAÇÕES PETRÓLEO
-# ═══════════════════════════════════════════════════════════════════════════════
-sl = slide()
-eye(sl, "Setor de petróleo")
-h2(sl, "Três aplicações diretas da metodologia")
-
-cw3b, cy3b = 3.7, 1.93
-card(sl, 0.75,             cy3b, cw3b, 3.45, title="Monitoramento de derrames",
-     body_text="Contornos + área % da mancha em imagens de satélite ou sobrevoo — "
-               "exatamente o experimento que acabamos de ver. Triagem rápida e barata antes de radar (SAR).")
-card(sl, 0.75+cw3b+0.17,   cy3b, cw3b, 3.45, title="Faixa de dutos (right-of-way)",
-     body_text="Os contornos de vegetação detectam mato invadindo a faixa de servidão de "
-               "oleodutos — priorizando a manutenção preventiva quilômetro a quilômetro.")
-card(sl, 0.75+2*(cw3b+0.17), cy3b, cw3b, 3.45, title="Vazamento por estresse vegetal",
-     body_text="Solo contaminado estressa a vegetação antes de o óleo aflorar: queda de "
-               "ExG/VARI ao longo da linha do duto = alerta precoce de vazamento.")
-
-pivot(sl, "Limitação honesta",
-      "Sem bandas térmicas/radar, água com sedimento pode confundir-se com óleo fino. "
-      "A detecção RGB atua como primeira camada de triagem — aponta onde usar sensores especializados.",
-      0.75, 5.53, 11.8, 1.17)
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 17 — GENERALIZAÇÃO ESTRELAS
-# ═══════════════════════════════════════════════════════════════════════════════
-sl = slide()
-eye(sl, "Passo 10 · a ideia original — espaço e telescópios")
+eye(sl, "Passo 9 · a ideia original — espaço e telescópios")
 h2(sl, "A mesma receita conta estrelas")
 
 img(sl, outputs("generalizacao_estrelas.png"), 0.75, 1.88, 11.8, 4.28)
-pivot(sl, "Vegetação mede cobertura · óleo mede área · astronomia conta objetos",
+pivot(sl, "Vegetação mede cobertura · astronomia conta objetos",
       "Imagem Hubble (NASA/ESA) do aglomerado M13 (domínio público). Assinatura = BRILHO. "
       "Limiar global perdia estrelas fracas (7.736). Versão final reusa 3 peças do projeto: "
       "CLAHE (equalização local) eleva as fracas; white top-hat (realce local) as extrai; "
@@ -465,32 +425,32 @@ pivot(sl, "Vegetação mede cobertura · óleo mede área · astronomia conta ob
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 18 — SÍNTESE
+# 16 — SÍNTESE
 # ═══════════════════════════════════════════════════════════════════════════════
 sl = slide()
 eye(sl, "Síntese · a virada do projeto")
-h2(sl, "Uma metodologia, três domínios")
+h2(sl, "Uma metodologia, dois domínios")
 t(sl, "Os mesmos cinco blocos — assinatura → limiar absoluto → morfologia → componentes conexos → medida — "
-      "resolveram problemas de meio ambiente, indústria e ciência. Só muda a assinatura.",
+      "funcionam do campo agrícola ao telescópio espacial. Só muda a assinatura.",
   0.75, 1.87, 11.8, 0.65, sz=15, color=BODY)
 
-theaders = ["",              "Vegetação",            "Petróleo",             "Astronomia"]
+theaders = ["",              "Vegetação",                    "Astronomia"]
 trows    = [
-    ["Imagem",       "drone (RGB)",          "NASA/MODIS",           "Hubble (M13)"],
-    ["Assinatura",   "verde (ExG/ExGR)",     "cor quente (R−B)",     "brilho (ponto claro)"],
-    ["Limiar",       "absoluto / HSV",       "absoluto (R−B ≥ 14)",  "Otsu automático"],
-    ["Mede",         "% cobertura",          "% área da mancha",     "contagem de objetos"],
-    ["Resultado",    "63,8% / 40,2%",        "17,4%",                "17.216 estrelas"],
-    ["Limite",       "cultura seca/esparsa", "sedimento vs. óleo",   "núcleo denso (fusão)"],
+    ["Imagem",       "drone RGB (campo e lavoura)",  "Hubble — aglomerado M13"],
+    ["Assinatura",   "verde dominante (ExG/ExGR)",   "brilho pontual (ponto claro)"],
+    ["Limiar",       "absoluto (0) + trava HSV",     "Otsu automático"],
+    ["Mede",         "% de cobertura vegetal",       "contagem de objetos"],
+    ["Resultado",    "63,8% / 40,2%",                "17.216 estrelas detectadas"],
+    ["Limite",       "cultura seca/esparsa",         "núcleo denso (fusão)"],
 ]
-tbl(sl, theaders, trows, l=0.75, top=2.62, col_w=[2.45, 3.12, 3.12, 3.12], row_h=0.56)
+tbl(sl, theaders, trows, l=0.75, top=2.62, col_w=[2.7, 5.3, 4.8], row_h=0.62)
 
-t(sl, "Meta-lição: toda detecção por limiar tem um regime onde sinal e fundo se confundem — e isso é o mesmo nos três domínios.",
-  0.75, 7.0, 11.8, 0.38, sz=12, italic=True, color=MUTED)
+t(sl, "Meta-lição: toda detecção por limiar tem um regime onde sinal e fundo se confundem — e isso é o mesmo nos dois domínios.",
+  0.75, 7.02, 11.8, 0.38, sz=12, italic=True, color=MUTED)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 19 — CONCLUSÕES
+# 17 — CONCLUSÕES
 # ═══════════════════════════════════════════════════════════════════════════════
 sl = slide()
 eye(sl, "Conclusões")
@@ -504,8 +464,8 @@ card(sl, 0.75+cw3c+0.17,    cy3c, cw3c, 3.35, num="2", title="Índices divergent
      body_text="ExG alto + VARI negativo na lavoura = alarme de falso positivo. "
                "A segmentação final (ExGR + HSV + fechamento) resolveu: 97,7% → 40,2% de vegetação real.")
 card(sl, 0.75+2*(cw3c+0.17), cy3c, cw3c, 3.35, num="3", title="A contribuição é a metodologia",
-     body_text="Os mesmos blocos mediram % de vegetação, área da mancha de óleo (NASA) "
-               "e contagem de 17.216 estrelas (Hubble). Vale para qualquer alvo.")
+     body_text="Os mesmos blocos mediram % de cobertura vegetal em campo agrícola e "
+               "contagem de 17.216 estrelas no aglomerado M13 (Hubble). Vale para qualquer alvo.")
 
 pivot(sl, "Entregáveis",
       "Notebook Jupyter com 15 etapas comentadas · Relatório técnico em LaTeX · "

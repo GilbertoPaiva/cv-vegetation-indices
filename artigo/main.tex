@@ -65,11 +65,10 @@ luminância na distinção de vegetação, e propõe-se uma segmentação aprimo
 superfícies acinzentadas. Os experimentos utilizam duas imagens aéreas de drone de alta
 resolução (até 19,9~MP), obtidas de bancos de imagens abertos com processo de seleção
 documentado, cobrindo dois regimes de cena complementares: campo misto e lavoura com solo
-exposto. Por fim, a metodologia é generalizada a dois outros domínios com os mesmos blocos
-algorítmicos: a segmentação da mancha de óleo do acidente \emph{Deepwater Horizon} (imagem
-NASA/MODIS) e a contagem de estrelas no aglomerado M13 (imagem Hubble). Os resultados
-evidenciam que a contribuição é a metodologia --- e que a escolha da imagem é parte
-integrante do algoritmo.
+exposto. Por fim, a metodologia é generalizada a um outro domínio com os mesmos blocos
+algorítmicos: a contagem de estrelas no aglomerado globular M13 (imagem do Telescópio
+Espacial Hubble, NASA/ESA). Os resultados evidenciam que a contribuição é a metodologia ---
+e que a escolha da imagem é parte integrante do algoritmo.
 \\[1ex]
 \textbf{Palavras-chave:} visão computacional; índices de vegetação; VARI; ExG; segmentação; OpenCV.
 \end{abstract}
@@ -108,11 +107,10 @@ imagem é parte do algoritmo); a limiarização por brilho (Otsu) segmentou a es
 campo, e a crominância venceu o brilho; o índice ingênuo superestimou a vegetação sobre solo, e
 testes absolutos de cor corrigiram. Ao final, percebemos que a ``receita'' montada ---
 \emph{assinatura $\rightarrow$ limiar absoluto $\rightarrow$ morfologia $\rightarrow$ componentes
-conexos $\rightarrow$ medida} --- não depende do verde. Para prová-lo, aplicamo-la a dois
-domínios de impacto real: a delimitação de uma \textbf{mancha de óleo} no mar (resposta a
-derrames, relevante à indústria de petróleo) e a \textbf{contagem de estrelas} em uma imagem de
-telescópio (ciência fundamental). A mesma metodologia mede cobertura, área e contagem --- e a
-mesma lição (\emph{a assinatura certa vence o brilho}) reaparece em cada domínio.
+conexos $\rightarrow$ medida} --- não depende do verde. Para prová-lo, aplicamo-la a um
+domínio distante: a \textbf{contagem de estrelas} em uma imagem do Telescópio Espacial Hubble
+(ciência fundamental). A mesma lição (\emph{a assinatura certa vence o brilho}) reaparece ---
+agora, brilho puntual sobre fundo escuro, em vez de cor sobre fundo heterogêneo.
 
 % ════════════════════════════════════════════════════════════
 \section{Objetivos}
@@ -135,8 +133,8 @@ ambientais.
   \item Realizar segmentação de regiões de interesse por limiarização (Otsu) e por índices
         espectrais;
   \item Apresentar resultados comparativos (original $\times$ processado) com análise crítica;
-  \item Demonstrar a \textbf{generalização da metodologia} a outros domínios (derramamento de
-        óleo e astronomia), evidenciando que a contribuição é o método, não um detector específico;
+  \item Demonstrar a \textbf{generalização da metodologia} a um domínio distinto (astronomia),
+        evidenciando que a contribuição é o método, não um detector específico de vegetação;
   \item Documentar todo o processo em relatório técnico e código comentado.
 \end{itemize}
 
@@ -250,7 +248,7 @@ pelo autor, obedeceu a três critérios objetivos:
         (\texttt{lavoura-solo}, 11,9~MP --- o caso difícil, usado para validar a segmentação).
 \end{enumerate}
 
-Todas as imagens --- as duas de drone e as duas usadas nas generalizações (Seção~\ref{sec:geral})
+Todas as imagens --- as duas de drone e a usada na generalização (Seção~\ref{sec:geral})
 --- foram baixadas de fontes abertas, com origem, licença e justificativa documentadas na
 Tabela~\ref{tab:origem}, e versionadas no repositório do projeto junto ao código que as processa.
 Essa documentação atende ao critério de \emph{participação ativa na aquisição} previsto na
@@ -267,7 +265,6 @@ proposta.
 \midrule
 \texttt{drone-campo-fazenda} & banco de imagens aberto & livre & 19,9~MP, \emph{nadir}, cena mista (imagem principal) \\
 \texttt{drone-lavoura-solo}  & banco de imagens aberto & livre & 11,9~MP, solo exposto (caso difícil) \\
-\texttt{nasa-deepwater-horizon} & NASA Earth Observatory & domínio público & caso real de mancha de óleo (generalização) \\
 \texttt{hubble-m13-cluster} & NASA/ESA --- Hubble & domínio público & milhares de estrelas (generalização) \\
 \bottomrule
 \end{tabular}}
@@ -286,8 +283,7 @@ proposta.
   \item \textbf{Segmentação:} Otsu (grayscale) \emph{vs.} ExG, com refino morfológico;
   \item \textbf{Segmentação aprimorada:} ExGR + trava HSV + refino morfológico;
   \item \textbf{Visualização:} \emph{grid} comparativo de todos os estágios;
-  \item \textbf{Generalização:} a mesma metodologia aplicada à detecção de óleo (NASA/MODIS) e
-        à contagem de estrelas (Hubble).
+  \item \textbf{Generalização:} a mesma metodologia aplicada à contagem de estrelas (Hubble/M13).
 \end{enumerate}
 
 % ════════════════════════════════════════════════════════════
@@ -595,69 +591,13 @@ painel.
 
 Até aqui, a ``receita'' foi montada para vegetação. Sua estrutura, porém, independe do alvo:
 \emph{assinatura $\rightarrow$ limiar absoluto $\rightarrow$ morfologia $\rightarrow$ componentes
-conexos $\rightarrow$ medida}. As duas subseções a seguir a aplicam, \textbf{sem trocar os
-blocos}, a dois domínios de impacto real --- e a mesma lição (\emph{a assinatura certa vence o
-brilho}) reaparece em ambos.
-
-\subsection{Setor de petróleo: delimitar uma mancha de óleo}
-A metodologia desenvolvida não depende do alvo ser verde: seus blocos --- assinatura
-espectral, testes absolutos em HSV, morfologia, contornos e percentual de área --- segmentam
-qualquer alvo cuja cor se distinga do fundo. Para demonstrá-lo, aplicou-se a \emph{mesma
-receita} a um caso real do setor de petróleo: o derramamento da plataforma
-\emph{Deepwater Horizon} no Golfo do México, registrado pelo sensor MODIS/Terra da NASA em
-24 de maio de 2010 (imagem de domínio público, com fonte documentada~\cite{nasa2010}).
-
-A primeira tentativa segmentou apenas por \textbf{brilho} ($S < 60$ e $V > 140$), supondo que
-o óleo seria sempre claro no \emph{sunglint}. O resultado teve baixa acurácia: as \textbf{nuvens},
-igualmente claras e dessaturadas, entravam como falso positivo (7,1\% da cena, espalhados em
-5 regiões). A correção repete a lição central da vegetação --- \emph{a cor distingue o alvo, o
-brilho engana}. A assinatura real do óleo é a \textbf{temperatura de cor}: o petróleo e o
-dispersante dão à superfície um tom \emph{tan} (quente), com o canal vermelho nitidamente acima
-do azul. Medindo $\text{warm} = R - B$, o óleo apresenta $R-B \approx 20$--$25$, enquanto a água
-($-5$ a $8$) e as nuvens brancas ($\approx 0$) são neutras. O critério acurado
-$R-B \geq 14 \;\wedge\; V > 110 \;\wedge\; S < 110$, com o mesmo refino morfológico e filtro de área
-mínima (0,3\% da cena) para descartar fragmentos de nuvem dispersos, exclui
-nuvens e água e delimita a mancha como uma \textbf{região coerente de 17,4\%}
-(Figura~\ref{fig:petroleo}).
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{generalizacao_petroleo.png}
-\caption{Generalização ao setor de petróleo (imagem NASA/MODIS, \emph{Deepwater Horizon},
-24/05/2010). Da esquerda para a direita: original; máscara histórica só por brilho (7,1\%,
-inclui nuvens); máscara acurada por temperatura de cor $R-B$ (17,4\%, nuvens e água excluídas);
-mancha destacada com contornos. O refino morfológico é idêntico ao do \emph{pipeline} de
-vegetação.}
-\label{fig:petroleo}
-\end{figure}
-
-\noindent
-A transferência abre três aplicações diretas no setor:
-
-\begin{table}[H]
-\centering
-\caption{Aplicações da metodologia no setor de petróleo.}
-\label{tab:petroleo}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{ll}
-\toprule
-\textbf{Contexto} & \textbf{Como a metodologia se aplica} \\
-\midrule
-Monitoramento de derrames & contornos e área \% da mancha em imagens de satélite --- este experimento \\
-Faixa de dutos (\emph{right-of-way}) & contornos da vegetação invadindo a faixa de servidão; manutenção preventiva \\
-Detecção indireta de vazamentos & queda de ExG/VARI na vegetação ao longo da linha indica solo contaminado \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-\noindent
-\textbf{Limitação:} sem bandas térmicas ou radar, água costeira com sedimento pode
-confundir-se com óleo fino. Em operação real, a detecção RGB atua como \emph{triagem rápida}
-e de baixo custo, priorizando áreas para sensores especializados (SAR).
+conexos $\rightarrow$ medida}. A subseção a seguir a aplica, \textbf{sem trocar os blocos}, a
+um domínio radicalmente diferente --- e a mesma lição (\emph{a assinatura certa define o alvo})
+reaparece.
 
 \subsection{Astronomia: contar estrelas}
-Enquanto a vegetação mede \emph{cobertura} e o óleo mede \emph{área}, a astronomia exercita o
-terceiro uso do mesmo arcabouço: \textbf{contar objetos}. Aplicou-se o \emph{pipeline} a uma
+Enquanto a vegetação mede \emph{cobertura}, a astronomia exercita um segundo uso do mesmo
+arcabouço: \textbf{contar objetos}. Aplicou-se o \emph{pipeline} a uma
 imagem do aglomerado globular \textbf{M13} obtida pelo Telescópio Espacial Hubble
 (NASA/ESA, domínio público~\cite{hubble}). Aqui a assinatura não é a cor, e sim o \textbf{brilho}:
 uma estrela é um ponto claro sobre o céu negro. Uma primeira versão com limiar global de brilho
@@ -669,7 +609,7 @@ contraste \emph{local} (parente da equalização de histograma) que faz as estre
 do fundo, vizinhança a vizinhança; e (iii) o \textbf{Otsu} --- o mesmo limiar automático da
 segmentação por brilho (Seção~\ref{sec:results}), que escolhe o corte sem número mágico. Em
 seguida, a função \texttt{cv2.connectedComponentsWithStats} --- \emph{a mesma} usada no filtro
-de área da vegetação e do óleo --- agora \textbf{conta}: cada componente conexo isolado é uma
+de área da vegetação --- agora \textbf{conta}: cada componente conexo isolado é uma
 estrela. A contagem passa de 7.736 para \textbf{17.216 estrelas} (Figura~\ref{fig:estrelas});
 o recorte ampliado evidencia a detecção individual.
 
@@ -684,12 +624,12 @@ detectada circulada.}
 
 \noindent
 \textbf{Limitação:} no núcleo denso, estrelas vizinhas se fundem em um único componente, de modo
-que a contagem é um \emph{limite inferior}. É a mesma natureza das limitações anteriores
-(sedimento \emph{vs.} óleo; vegetação seca na lavoura): toda detecção por limiar tem um regime
-em que sinal e fundo se confundem. O conjunto dos três domínios --- vegetação, petróleo e
-astronomia --- evidencia que a contribuição do trabalho é a \textbf{metodologia} (assinatura
-$\rightarrow$ limiar absoluto $\rightarrow$ morfologia $\rightarrow$ componentes conexos
-$\rightarrow$ medida), e não um detector específico de vegetação.
+que a contagem é um \emph{limite inferior} --- a mesma natureza da limitação da vegetação
+(cultura seca/esparsa): toda detecção por limiar tem um regime em que sinal e fundo se
+confundem. Os dois domínios --- vegetação e astronomia --- evidenciam que a contribuição do
+trabalho é a \textbf{metodologia} (assinatura $\rightarrow$ limiar absoluto $\rightarrow$
+morfologia $\rightarrow$ componentes conexos $\rightarrow$ medida), e não um detector específico
+de vegetação.
 
 % ════════════════════════════════════════════════════════════
 \section{Análise Crítica}
@@ -700,8 +640,9 @@ Os experimentos sustentam quatro conclusões técnicas:
 \begin{enumerate}
   \item \textbf{A assinatura certa supera o brilho.} Para vegetação, índices de crominância
         (ExG, VARI, ExGR) superam o Otsu por luminância, que chegou a segmentar a estrada em vez
-        do campo. A \emph{mesma} lição reapareceu no óleo: detectar por brilho incluía nuvens;
-        detectar pela temperatura de cor ($R-B$) acertou.
+        do campo. Na astronomia, a assinatura é o oposto --- \emph{brilho pontual sobre fundo
+        escuro} --- mas a mesma estrutura (limiar absoluto + morfologia + contagem de componentes)
+        funciona, passando de 7.736 para 17.216 estrelas detectadas.
   \item \textbf{Testes absolutos superam testes relativos.} O limiar fixo erra por excesso
         (falsos positivos); o Otsu erra por falta em cenas uniformes (falsos negativos). A
         combinação \emph{absoluta} ExGR + HSV equilibra os dois extremos --- desde que a ordem
@@ -713,29 +654,28 @@ Os experimentos sustentam quatro conclusões técnicas:
         única superfície.
   \item \textbf{A contribuição é a metodologia, não o alvo.} O mesmo arcabouço
         (assinatura $\rightarrow$ limiar absoluto $\rightarrow$ morfologia $\rightarrow$
-        componentes conexos $\rightarrow$ medida) mediu cobertura vegetal, delimitou uma mancha de
-        óleo e contou estrelas (Tabela~\ref{tab:sintese}). E uma meta-lição honesta o atravessa:
-        \emph{toda detecção por limiar tem um regime em que sinal e fundo se confundem} --- o
-        núcleo do aglomerado, o sedimento na água, a cultura seca na lavoura.
+        componentes conexos $\rightarrow$ medida) mediu cobertura vegetal em campo agrícola e
+        contou 17.216 estrelas em um aglomerado globular (Tabela~\ref{tab:sintese}). E uma
+        meta-lição honesta o atravessa: \emph{toda detecção por limiar tem um regime em que sinal
+        e fundo se confundem} --- o núcleo do aglomerado e a cultura seca na lavoura.
 \end{enumerate}
 
 \begin{table}[H]
 \centering
-\caption{Síntese: a mesma metodologia em três domínios.}
+\caption{Síntese: a mesma metodologia em dois domínios.}
 \label{tab:sintese}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{llll}
+\begin{tabular}{lll}
 \toprule
- & \textbf{Vegetação} & \textbf{Petróleo} & \textbf{Astronomia} \\
+ & \textbf{Vegetação} & \textbf{Astronomia} \\
 \midrule
-Imagem        & drone (RGB)              & NASA/MODIS               & Hubble (M13) \\
-Assinatura    & verde dominante (ExG/ExGR) & cor quente ($R-B$)     & brilho (ponto claro) \\
-Limiar        & absoluto (0) / trava HSV & absoluto ($R-B\!\geq\!14$) & Otsu (automático) \\
-O que se mede & \% de cobertura          & \% de área da mancha     & contagem de objetos \\
-Resultado     & 63,8\% / 40,2\%          & 17,4\% em 1 região       & 17.216 estrelas \\
-Limite        & cultura seca/esparsa     & sedimento vs.\ óleo fino & núcleo denso (fusão) \\
+Imagem        & drone RGB (campo e lavoura)    & Hubble (aglomerado M13) \\
+Assinatura    & verde dominante (ExG / ExGR)   & brilho pontual (ponto claro) \\
+Limiar        & absoluto (0) + trava HSV       & Otsu automático \\
+O que se mede & \% de cobertura vegetal        & contagem de objetos \\
+Resultado     & 63,8\% / 40,2\%               & 17.216 estrelas detectadas \\
+Limite        & cultura seca/esparsa           & núcleo denso (fusão de componentes) \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table}
 
 \paragraph{Limitações gerais.} A detecção RGB é uma \emph{triagem} de baixo custo: imagens
@@ -752,14 +692,12 @@ pré-processamento, análise de histograma, filtragem, detecção de bordas, seg
 visualização --- e vai além ao implementar índices espectrais especializados e uma segmentação
 de alta precisão que elimina falsos positivos. Demonstrou-se que técnicas de processamento de
 imagem extraem informação quantitativa de vegetação invisível a olho nu, e que a qualidade do
-resultado depende tanto do algoritmo quanto da adequação da imagem de entrada. As generalizações
---- segmentar a mancha da \emph{Deepwater Horizon} (petróleo) e contar 17.216 estrelas no
-aglomerado M13 (astronomia) com os mesmos blocos algorítmicos --- mostram que a contribuição do
-trabalho é a \emph{metodologia} (assinatura $\rightarrow$ limiar absoluto $\rightarrow$ morfologia
-$\rightarrow$ componentes conexos $\rightarrow$ medida), não um detector de verde. Como trabalho
-futuro, sugere-se a validação em séries temporais de imagens aéreas, a integração com câmeras
-multiespectrais (NDVI), o aprofundamento da aplicação petrolífera com radar (SAR) e, na
-astronomia, fotometria por ajuste de PSF para resolver o núcleo do aglomerado.
+resultado depende tanto do algoritmo quanto da adequação da imagem de entrada. A generalização à contagem de estrelas no aglomerado M13 --- com os mesmos blocos algorítmicos
+--- mostra que a contribuição do trabalho é a \emph{metodologia} (assinatura $\rightarrow$
+limiar absoluto $\rightarrow$ morfologia $\rightarrow$ componentes conexos $\rightarrow$ medida),
+não um detector de verde. Como trabalho futuro, sugere-se a validação em séries temporais de
+imagens aéreas, a integração com câmeras multiespectrais (NDVI) e, na astronomia, fotometria
+por ajuste de PSF para resolver o núcleo denso do aglomerado.
 
 % ════════════════════════════════════════════════════════════
 \begin{thebibliography}{9}
@@ -794,11 +732,6 @@ OPENCV. \textbf{OpenCV Documentation.} Disponível em: \url{https://docs.opencv.
 
 \bibitem{scikit}
 SCIKIT-IMAGE. \textbf{Documentation.} Disponível em: \url{https://scikit-image.org/docs/stable/}.
-
-\bibitem{nasa2010}
-NASA. \textbf{Oil slick in the Gulf of Mexico} (Deepwater Horizon). Imagem MODIS/Terra,
-24 mai.\ 2010. Domínio público. Disponível em:
-\url{https://commons.wikimedia.org/wiki/File:Deepwater_Horizon_oil_spill_-_May_24,_2010.jpg}.
 
 \bibitem{hubble}
 NASA; ESA. \textbf{Hubble image of globular cluster M13}. Telescópio Espacial Hubble.

@@ -135,19 +135,11 @@ Aplicação do índice ExG (baseline) sobre as 2 imagens — regimes de cena com
 |---|---|
 | ![Histograma ExG](outputs/histograma_exg.png) | ![Histograma RGB](outputs/histograma_rgb.png) |
 
-### Generalização 1 — setor de petróleo (Etapa 14)
-
-![Generalização petróleo](outputs/generalizacao_petroleo.png)
-
-A metodologia **não depende do verde**. Na imagem NASA/MODIS do derramamento da *Deepwater Horizon* (24/05/2010, domínio público), a 1ª versão por **brilho** (`S<60 & V>140`) incluía nuvens (**7.1%**, espalhado). A assinatura real do óleo é a **cor quente (tan)**: `R−B ≈ 20–25` (água e nuvem ≈ 0). Trocando brilho por **temperatura de cor** (`R−B ≥ 14 & V>110 & S<110`) + o mesmo refino morfológico com filtro de área mínima (0,3% da cena) para descartar fragmentos de nuvem, a mancha vira uma **região coerente de 17.4%** — a mesma lição "cor vence brilho" da vegetação.
-
-Aplicações no setor: monitoramento de derrames (este experimento), contornos de vegetação invadindo faixas de dutos (*right-of-way*), e queda de ExG/VARI como alerta precoce de vazamento por estresse vegetal. Limitação: água com sedimento pode confundir-se com óleo fino — a detecção RGB é triagem rápida antes de sensores SAR.
-
-### Generalização 2 — astronomia / contagem de objetos (Etapa 15)
+### Generalização — astronomia / contagem de objetos (Etapa 14)
 
 ![Generalização estrelas](outputs/generalizacao_estrelas.png)
 
-A ideia original do projeto (imagens de telescópio) fecha a demonstração. Na imagem Hubble (NASA/ESA) do aglomerado globular **M13** (domínio público), a assinatura é o **brilho** (estrela = ponto claro no céu negro). O limiar global de brilho perdia as estrelas fracas (7.736); a versão final reusa **três peças do projeto** — **CLAHE** (equalização local de contraste) eleva as estrelas fracas em relação à vizinhança, o **white top-hat** (realce de contraste *local*, primo da equalização) extrai pontos brilhantes do fundo, e o **mesmo Otsu** da vegetação escolhe o corte automático — e o **mesmo** `connectedComponentsWithStats` do filtro de área **conta**: **17.216 estrelas**. Limitação: no núcleo denso as estrelas se fundem, então a contagem é um limite inferior. Os três domínios (vegetação → cobertura %, óleo → área, estrelas → contagem) provam que a contribuição é a **metodologia**.
+A ideia original do projeto (imagens de telescópio) fecha a demonstração. Na imagem Hubble (NASA/ESA) do aglomerado globular **M13** (domínio público), a assinatura é o **brilho** (estrela = ponto claro no céu negro). O limiar global de brilho perdia as estrelas fracas (7.736); a versão final reusa **três peças do projeto** — **CLAHE** (equalização local de contraste) eleva as estrelas fracas em relação à vizinhança, o **white top-hat** (realce de contraste *local*, primo da equalização) extrai pontos brilhantes do fundo, e o **mesmo Otsu** da vegetação escolhe o corte automático — e o **mesmo** `connectedComponentsWithStats` do filtro de área **conta**: **17.216 estrelas**. Limitação: no núcleo denso as estrelas se fundem, então a contagem é um limite inferior. Os dois domínios (vegetação → cobertura %, estrelas → contagem) provam que a contribuição é a **metodologia**.
 
 ---
 
@@ -158,10 +150,9 @@ cv-vegetation-indices/
 ├── images/                  # imagens de entrada
 │   ├── drone-campo-fazenda.jpg       # imagem PRINCIPAL (etapas 1–13), 19.9 MP
 │   ├── drone-lavoura-solo.jpg        # caso difícil: solo vs. vegetação, 11.9 MP
-│   ├── nasa-deepwater-horizon.jpg    # NASA/MODIS, domínio público (etapa 14)
-│   └── hubble-m13-cluster.jpg        # Hubble NASA/ESA, domínio público (etapa 15)
+│   └── hubble-m13-cluster.jpg        # Hubble NASA/ESA, domínio público (etapa 14)
 ├── notebooks/
-│   └── analise_indices_vegetacao.ipynb   # pipeline completo (etapas 1–15)
+│   └── analise_indices_vegetacao.ipynb   # pipeline completo (etapas 1–14)
 ├── outputs/                 # imagens geradas pelo notebook
 │   ├── original_vs_grayscale.png
 │   ├── equalizacao_histograma.png
@@ -175,7 +166,6 @@ cv-vegetation-indices/
 │   ├── canny_limiares.png
 │   ├── grid_pipeline_completo.png
 │   ├── segmentacao_aprimorada.png
-│   ├── generalizacao_petroleo.png
 │   └── generalizacao_estrelas.png
 ├── artigo/                  # relatório técnico em LaTeX (main.tex, main.pdf, figuras/)
 ├── site/                    # apresentação: index.html (web) e apresentacao.pptx (PowerPoint)
