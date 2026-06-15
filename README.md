@@ -164,6 +164,7 @@ cv-vegetation-indices/
 │   └── analise_indices_vegetacao.ipynb   # pipeline completo (etapas 1–15)
 ├── outputs/                 # imagens geradas pelo notebook
 │   ├── original_vs_grayscale.png
+│   ├── equalizacao_histograma.png
 │   ├── histograma_rgb.png
 │   ├── histograma_exg.png
 │   ├── comparativo_indices.png
@@ -177,7 +178,7 @@ cv-vegetation-indices/
 │   ├── generalizacao_petroleo.png
 │   └── generalizacao_estrelas.png
 ├── artigo/                  # relatório técnico em LaTeX (main.tex, main.pdf, figuras/)
-├── site/                    # slides da apresentação (HTML, estilo claro/escuro)
+├── site/                    # apresentação: index.html (web) e apresentacao.pptx (PowerPoint)
 └── README.md
 ```
 
