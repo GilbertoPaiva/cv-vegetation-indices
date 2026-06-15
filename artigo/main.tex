@@ -515,14 +515,14 @@ uniformemente verdes. A Tabela~\ref{tab:aprimorada} quantifica a correção.
 \toprule
 \textbf{Imagem} & \textbf{ExG$>$0 (ingênuo)} & \textbf{ExGR+HSV (final)} & \textbf{Leitura} \\
 \midrule
-campo-fazenda    & 86,7\% & 63,8\% & céu e estrada excluídos \\
-lavoura-solo     & 97,4\% & 40,2\% & solo excluído, cultura verde preservada \\
+campo-fazenda    & 87,9\% & 63,8\% & céu e estrada excluídos \\
+lavoura-solo     & 97,7\% & 40,2\% & solo excluído, cultura verde preservada \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 \noindent
-Na \texttt{lavoura-solo}, a queda é a mais acentuada (97,4\% $\rightarrow$ 40,2\%): o ExGR
+Na \texttt{lavoura-solo}, a queda é a mais acentuada (97,7\% $\rightarrow$ 40,2\%): o ExGR
 descarta o solo avermelhado (que tem $\text{ExGR} < 0$), retendo apenas a cultura verde da
 metade esquerda da cena. Um detalhe de implementação foi decisivo: a plantação aparece como
 \textbf{fileiras finas de verde separadas por sulcos de terra}; aplicar a \emph{abertura}
