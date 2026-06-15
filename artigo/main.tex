@@ -475,8 +475,8 @@ A Tabela~\ref{tab:segmentacao} e a Figura~\ref{fig:segmentacao} contrastam os do
 \toprule
 \textbf{Método} & \textbf{Threshold} & \textbf{Cobertura} & \textbf{Regiões} \\
 \midrule
-Otsu (grayscale) & 0,5529 & 18,91\% & 17 \\
-ExG fixo ($>0$)  & 0,0000 & 91,46\% & 12 \\
+Otsu (grayscale) & 0,5529 & 17,37\% & 3 \\
+ExG fixo ($>0$)  & 0,0000 & 82,93\% & 14 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -484,8 +484,8 @@ ExG fixo ($>0$)  & 0,0000 & 91,46\% & 12 \\
 \noindent
 Otsu segmenta por \textbf{brilho}: o limiar 0,55 separa pixels claros de escuros e acaba marcando
 justamente a \textbf{estrada de terra clara} (e o céu) --- ou seja, \emph{exatamente o que não é
-vegetação} ---, cobrindo apenas 19\% em 17 regiões dispersas. O ExG segmenta por \textbf{assinatura espectral
-de crominância} e detecta o campo verde (91\%) em 12 regiões coerentes, excluindo estrada e céu.
+vegetação} ---, cobrindo apenas 17\% em 3 regiões dispersas. O ExG segmenta por \textbf{assinatura espectral
+de crominância} e detecta o campo verde (83\%) em 14 regiões coerentes, excluindo estrada e céu.
 Conclui-se que, para imagens RGB de campo, a limiarização por índice espectral é metodologicamente
 superior à de Otsu por luminância, que descarta a informação de crominância que define a vegetação
 --- podendo, inclusive, segmentar o alvo errado.
@@ -615,8 +615,9 @@ brilho engana}. A assinatura real do óleo é a \textbf{temperatura de cor}: o p
 dispersante dão à superfície um tom \emph{tan} (quente), com o canal vermelho nitidamente acima
 do azul. Medindo $\text{warm} = R - B$, o óleo apresenta $R-B \approx 20$--$25$, enquanto a água
 ($-5$ a $8$) e as nuvens brancas ($\approx 0$) são neutras. O critério acurado
-$R-B \geq 18 \;\wedge\; V > 110 \;\wedge\; V < 220 \;\wedge\; S < 110$, com o mesmo refino morfológico, exclui
-nuvens e água e delimita a mancha como uma \textbf{região coerente de 11,8\%}
+$R-B \geq 14 \;\wedge\; V > 110 \;\wedge\; S < 110$, com o mesmo refino morfológico e filtro de área
+mínima (0,3\% da cena) para descartar fragmentos de nuvem dispersos, exclui
+nuvens e água e delimita a mancha como uma \textbf{região coerente de 17,4\%}
 (Figura~\ref{fig:petroleo}).
 
 \begin{figure}[H]
@@ -624,7 +625,7 @@ nuvens e água e delimita a mancha como uma \textbf{região coerente de 11,8\%}
 \includegraphics[width=\textwidth]{generalizacao_petroleo.png}
 \caption{Generalização ao setor de petróleo (imagem NASA/MODIS, \emph{Deepwater Horizon},
 24/05/2010). Da esquerda para a direita: original; máscara histórica só por brilho (7,1\%,
-inclui nuvens); máscara acurada por temperatura de cor $R-B$ (11,8\%, nuvens e água excluídas);
+inclui nuvens); máscara acurada por temperatura de cor $R-B$ (17,4\%, nuvens e água excluídas);
 mancha destacada com contornos. O refino morfológico é idêntico ao do \emph{pipeline} de
 vegetação.}
 \label{fig:petroleo}
@@ -661,14 +662,16 @@ imagem do aglomerado globular \textbf{M13} obtida pelo Telescópio Espacial Hubb
 (NASA/ESA, domínio público~\cite{hubble}). Aqui a assinatura não é a cor, e sim o \textbf{brilho}:
 uma estrela é um ponto claro sobre o céu negro. Uma primeira versão com limiar global de brilho
 ($> 140$) perdia as estrelas mais fracas (apenas 7.736 detectadas). A versão final reaproveita
-\emph{duas peças já usadas no projeto}: (i) o \textbf{white top-hat} --- realce de contraste
-\emph{local} (parente da equalização de histograma) que faz as estrelas fracas saltarem do fundo,
-vizinhança a vizinhança; e (ii) o \textbf{Otsu} --- o mesmo limiar automático da segmentação por
-brilho (Seção~\ref{sec:results}), que escolhe o corte sem número mágico. Em seguida, a função
-\texttt{cv2.connectedComponentsWithStats} --- \emph{a mesma} usada no filtro de área da vegetação
-e do óleo --- agora \textbf{conta}: cada componente conexo isolado é uma estrela. A contagem quase
-dobra, de 7.736 para \textbf{14.616 estrelas} (Figura~\ref{fig:estrelas}); o recorte ampliado
-evidencia a detecção individual.
+\emph{três peças já usadas no projeto}: (i) o \textbf{CLAHE} (\emph{Contrast Limited Adaptive
+Histogram Equalization}) --- equalização de contraste adaptativa local que eleva o realce das
+estrelas fracas em relação à sua própria vizinhança; (ii) o \textbf{white top-hat} --- realce de
+contraste \emph{local} (parente da equalização de histograma) que faz as estrelas fracas saltarem
+do fundo, vizinhança a vizinhança; e (iii) o \textbf{Otsu} --- o mesmo limiar automático da
+segmentação por brilho (Seção~\ref{sec:results}), que escolhe o corte sem número mágico. Em
+seguida, a função \texttt{cv2.connectedComponentsWithStats} --- \emph{a mesma} usada no filtro
+de área da vegetação e do óleo --- agora \textbf{conta}: cada componente conexo isolado é uma
+estrela. A contagem passa de 7.736 para \textbf{17.216 estrelas} (Figura~\ref{fig:estrelas});
+o recorte ampliado evidencia a detecção individual.
 
 \begin{figure}[H]
 \centering
@@ -727,9 +730,9 @@ Os experimentos sustentam quatro conclusões técnicas:
 \midrule
 Imagem        & drone (RGB)              & NASA/MODIS               & Hubble (M13) \\
 Assinatura    & verde dominante (ExG/ExGR) & cor quente ($R-B$)     & brilho (ponto claro) \\
-Limiar        & absoluto (0) / trava HSV & absoluto ($R-B\!\geq\!18$) & Otsu (automático) \\
+Limiar        & absoluto (0) / trava HSV & absoluto ($R-B\!\geq\!14$) & Otsu (automático) \\
 O que se mede & \% de cobertura          & \% de área da mancha     & contagem de objetos \\
-Resultado     & 63,8\% / 40,2\%          & 11,8\% em 2 regiões      & 14.616 estrelas \\
+Resultado     & 63,8\% / 40,2\%          & 17,4\% em 1 região       & 17.216 estrelas \\
 Limite        & cultura seca/esparsa     & sedimento vs.\ óleo fino & núcleo denso (fusão) \\
 \bottomrule
 \end{tabular}}
@@ -750,7 +753,7 @@ visualização --- e vai além ao implementar índices espectrais especializados
 de alta precisão que elimina falsos positivos. Demonstrou-se que técnicas de processamento de
 imagem extraem informação quantitativa de vegetação invisível a olho nu, e que a qualidade do
 resultado depende tanto do algoritmo quanto da adequação da imagem de entrada. As generalizações
---- segmentar a mancha da \emph{Deepwater Horizon} (petróleo) e contar 14.616 estrelas no
+--- segmentar a mancha da \emph{Deepwater Horizon} (petróleo) e contar 17.216 estrelas no
 aglomerado M13 (astronomia) com os mesmos blocos algorítmicos --- mostram que a contribuição do
 trabalho é a \emph{metodologia} (assinatura $\rightarrow$ limiar absoluto $\rightarrow$ morfologia
 $\rightarrow$ componentes conexos $\rightarrow$ medida), não um detector de verde. Como trabalho

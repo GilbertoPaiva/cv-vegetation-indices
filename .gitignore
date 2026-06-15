@@ -9,3 +9,7 @@ artigo/*.log
 artigo/*.out
 artigo/*.toc
 artigo/*.synctex.gz
+
+# arquivos de estudo — locais, não versionados
+GUIA_ESTUDO.md
+ROTEIRO_APRESENTACAO.md
