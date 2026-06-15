@@ -25,10 +25,10 @@ degradava os índices — está registrado no artigo.
 
 | Resultado | Número | Frase pronta |
 |---|---|---|
-| **Otsu vs. ExG** | 17% vs. 83% | "O Otsu, por brilho, marcou a **estrada de terra** — exatamente o que NÃO é vegetação. O ExG, por cor, marcou o campo. Cor vence brilho." |
+| **Otsu vs. ExG** | 19% vs. 91% | "O Otsu, por brilho, marcou a **estrada de terra** em 17 regiões dispersas — exatamente o que NÃO é vegetação. O ExG, por cor, marcou o campo em 12 regiões coerentes. Cor vence brilho." |
 | **Filtros (PSNR)** | Bilateral 34,1 dB | "O bilateral é o mais fiel porque suaviza **preservando bordas**." |
 | **Resolução do caso difícil** | lavoura: 97% → 40,2% | "O ExG dizia 97% numa lavoura cheia de solo — e o VARI negativo (−0,07) denunciava. ExGR + trava HSV + fechamento morfológico resolve: 40,2% de vegetação real (a cultura verde preservada, o solo fora). Histórico mantido na figura." |
-| **Generalização (petróleo)** | mancha: 7,1% → **17,4%** | "Primeiro detectei só por brilho — mas pegava nuvens. A assinatura real do óleo é a **cor quente** (R−B≈20): trocando brilho por cor, a mancha da **Deepwater Horizon** (imagem NASA) vira uma região coerente de 17,4%. Mesma lição da vegetação." |
+| **Generalização (petróleo)** | mancha: 7,1% → **11,8%** | "Primeiro detectei só por brilho — mas pegava nuvens. A assinatura real do óleo é a **cor quente** (R−B≈20): trocando brilho por cor, a mancha da **Deepwater Horizon** (imagem NASA) vira uma região coerente de 11,8%. Mesma lição da vegetação." |
 | **Generalização (estrelas)** | **14.616 estrelas** | "A ideia original: telescópio. Na imagem **Hubble** do M13, a assinatura é o brilho. O top-hat morfológico pega até as estrelas fracas e o **mesmo** connectedComponents que filtrava área agora **conta** 14.616 estrelas. A contribuição é a metodologia." |
 
 ## 4. Perguntas prováveis — respostas curtas

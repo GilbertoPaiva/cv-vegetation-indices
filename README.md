@@ -93,8 +93,8 @@ O **bilateral** apresenta maior PSNR porque preserva bordas — afasta menos a i
 
 | Método | Threshold | Cobertura | Regiões |
 |---|---|---|---|
-| Otsu (grayscale) | 0.55 | 17% | 3 |
-| ExG > 0 (fixo) | 0.0 | 83% | 14 |
+| Otsu (grayscale) | 0.55 | 19% | 17 |
+| ExG > 0 (fixo) | 0.0 | 91% | 12 |
 
 Otsu segmenta por **brilho** — e acaba marcando justamente a **estrada de terra clara** (e o céu), ou seja, *exatamente o que não é vegetação*. ExG segmenta por **assinatura espectral de crominância**, detectando especificamente o campo verde e excluindo estrada e céu.
 
@@ -139,7 +139,7 @@ Aplicação do índice ExG (baseline) sobre as 2 imagens — regimes de cena com
 
 ![Generalização petróleo](outputs/generalizacao_petroleo.png)
 
-A metodologia **não depende do verde**. Na imagem NASA/MODIS do derramamento da *Deepwater Horizon* (24/05/2010, domínio público), a 1ª versão por **brilho** (`S<60 & V>140`) incluía nuvens (**7.1%**, espalhado). A assinatura real do óleo é a **cor quente (tan)**: `R−B ≈ 20–25` (água e nuvem ≈ 0). Trocando brilho por **temperatura de cor** (`R−B ≥ 14 & V>110 & S<110`) + o mesmo refino morfológico, a mancha vira uma **região coerente de 17.4%** — a mesma lição "cor vence brilho" da vegetação.
+A metodologia **não depende do verde**. Na imagem NASA/MODIS do derramamento da *Deepwater Horizon* (24/05/2010, domínio público), a 1ª versão por **brilho** (`S<60 & V>140`) incluía nuvens (**7.1%**, espalhado). A assinatura real do óleo é a **cor quente (tan)**: `R−B ≈ 20–25` (água e nuvem ≈ 0). Trocando brilho por **temperatura de cor** (`R−B ≥ 18 & V>110 & V<220 & S<110`) + o mesmo refino morfológico, a mancha vira uma **região coerente de 11.8%** — a mesma lição "cor vence brilho" da vegetação.
 
 Aplicações no setor: monitoramento de derrames (este experimento), contornos de vegetação invadindo faixas de dutos (*right-of-way*), e queda de ExG/VARI como alerta precoce de vazamento por estresse vegetal. Limitação: água com sedimento pode confundir-se com óleo fino — a detecção RGB é triagem rápida antes de sensores SAR.
 

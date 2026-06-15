@@ -117,8 +117,8 @@ borda", **não é erro**.
 ## 7. A GRANDE DESCOBERTA — Otsu (brilho) × ExG (cor)
 
 - **Otsu:** escolhe um limiar **automático** pelo histograma, mas só pelo **brilho**.
-- **Resultado surpreendente:** o Otsu segmentou a **estrada de terra clara** (17%, em 3 regiões) —
-  exatamente o que **NÃO** é vegetação! O **ExG** (cor) pegou o **campo verde** (83%, 14 regiões).
+- **Resultado surpreendente:** o Otsu segmentou a **estrada de terra clara e áreas brilhantes** (19%, em 17 regiões dispersas) —
+  exatamente o que **NÃO** é vegetação! O **ExG** (cor) pegou o **campo verde** (91%, 12 regiões coerentes).
 - **Lição nº 1 (a mais importante):** **cor (crominância) vence brilho (luminância)**. O brilho
   pode até segmentar o alvo errado.
 
@@ -155,7 +155,7 @@ serve para outros alvos. Provei em dois domínios reais:
 - **Mesma lição cor-vence-brilho, de novo!** Primeiro tentei por **brilho** (a mancha é clara no
   reflexo do sol) — mas pegava **nuvens** (também claras). A assinatura **real** do óleo é a **cor
   quente (tan)**: vermelho bem maior que azul (**R − B ≈ 20–25**); água e nuvem são neutras (≈ 0).
-- Trocando brilho por cor quente → mancha vira **uma região coerente de 17,4%**.
+- Trocando brilho por cor quente → mancha vira **uma região coerente de 11,8%**.
 - **Aplicações reais:** monitorar derrames, ver vegetação invadindo faixa de dutos, detectar
   vazamento pela vegetação estressada perto do duto.
 
@@ -176,7 +176,7 @@ serve para outros alvos. Provei em dois domínios reais:
 | Assinatura | verde (ExG/ExGR) | cor quente (R−B) | brilho |
 | Limiar | absoluto / HSV | absoluto (R−B≥14) | Otsu automático |
 | Mede | % cobertura | % área da mancha | contagem |
-| Resultado | 63,8% / 40,2% | 17,4% | 14.616 estrelas |
+| Resultado | 63,8% / 40,2% | 11,8% | 14.616 estrelas |
 | Limite honesto | cultura seca | sedimento vs. óleo | núcleo denso |
 
 **A meta-lição honesta:** *toda detecção por limiar tem um regime onde sinal e fundo se
