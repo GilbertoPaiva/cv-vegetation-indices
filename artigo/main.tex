@@ -38,7 +38,7 @@
 
 \title{\textbf{Processamento Digital de Imagens Ambientais com Python}\\
 \large Dos índices de vegetação (VARI/ExG) a uma metodologia geral de detecção:\\
-\large vegetação, derramamento de óleo e astronomia}
+\large vegetação e astronomia}
 
 \author{
   Gilberto de Paiva Melo \\
@@ -601,17 +601,20 @@ arcabouço: \textbf{contar objetos}. Aplicou-se o \emph{pipeline} a uma
 imagem do aglomerado globular \textbf{M13} obtida pelo Telescópio Espacial Hubble
 (NASA/ESA, domínio público~\cite{hubble}). Aqui a assinatura não é a cor, e sim o \textbf{brilho}:
 uma estrela é um ponto claro sobre o céu negro. Uma primeira versão com limiar global de brilho
-($> 140$) perdia as estrelas mais fracas (apenas 7.736 detectadas). A versão final reaproveita
-\emph{três peças já usadas no projeto}: (i) o \textbf{CLAHE} (\emph{Contrast Limited Adaptive
+($> 140$) perdia as estrelas mais fracas (apenas 7.736 detectadas). A versão final combina
+\emph{três peças já presentes no projeto}: (i) o \textbf{CLAHE} (\emph{Contrast Limited Adaptive
 Histogram Equalization}) --- equalização de contraste adaptativa local que eleva o realce das
-estrelas fracas em relação à sua própria vizinhança; (ii) o \textbf{white top-hat} --- realce de
-contraste \emph{local} (parente da equalização de histograma) que faz as estrelas fracas saltarem
-do fundo, vizinhança a vizinhança; e (iii) o \textbf{Otsu} --- o mesmo limiar automático da
-segmentação por brilho (Seção~\ref{sec:results}), que escolhe o corte sem número mágico. Em
-seguida, a função \texttt{cv2.connectedComponentsWithStats} --- \emph{a mesma} usada no filtro
-de área da vegetação --- agora \textbf{conta}: cada componente conexo isolado é uma
-estrela. A contagem passa de 7.736 para \textbf{17.216 estrelas} (Figura~\ref{fig:estrelas});
-o recorte ampliado evidencia a detecção individual.
+estrelas fracas em relação à sua própria vizinhança; (ii) o \textbf{white top-hat em dupla escala}
+--- dois \emph{kernels} elípticos independentes (9~px para estrelas tênues de diâmetro
+pequeno, 25~px para estrelas brilhantes de halo maior) cujas detecções cobrem faixas de área
+complementares, garantindo que nem as fracas nem as grandes ficam de fora; e (iii) o
+\textbf{Otsu} --- o mesmo limiar automático da segmentação por brilho
+(Seção~\ref{sec:results}), aplicado independentemente a cada \emph{top-hat}, sem número
+mágico. Em seguida, a função \texttt{cv2.connectedComponentsWithStats} --- \emph{a mesma}
+usada no filtro de área da vegetação --- \textbf{conta}: cada componente conexo isolado é uma
+estrela. A contagem passa de 7.736 para \textbf{17.325 estrelas} (17.216 tênues + 109 grandes
+e brilhantes; Figura~\ref{fig:estrelas}); o recorte ampliado evidencia a detecção individual,
+distinguindo os dois grupos por cor de marcação.
 
 \begin{figure}[H]
 \centering
@@ -642,7 +645,7 @@ Os experimentos sustentam quatro conclusões técnicas:
         (ExG, VARI, ExGR) superam o Otsu por luminância, que chegou a segmentar a estrada em vez
         do campo. Na astronomia, a assinatura é o oposto --- \emph{brilho pontual sobre fundo
         escuro} --- mas a mesma estrutura (limiar absoluto + morfologia + contagem de componentes)
-        funciona, passando de 7.736 para 17.216 estrelas detectadas.
+        funciona, passando de 7.736 para 17.325 estrelas detectadas.
   \item \textbf{Testes absolutos superam testes relativos.} O limiar fixo erra por excesso
         (falsos positivos); o Otsu erra por falta em cenas uniformes (falsos negativos). A
         combinação \emph{absoluta} ExGR + HSV equilibra os dois extremos --- desde que a ordem
@@ -655,7 +658,7 @@ Os experimentos sustentam quatro conclusões técnicas:
   \item \textbf{A contribuição é a metodologia, não o alvo.} O mesmo arcabouço
         (assinatura $\rightarrow$ limiar absoluto $\rightarrow$ morfologia $\rightarrow$
         componentes conexos $\rightarrow$ medida) mediu cobertura vegetal em campo agrícola e
-        contou 17.216 estrelas em um aglomerado globular (Tabela~\ref{tab:sintese}). E uma
+        contou 17.325 estrelas em um aglomerado globular (Tabela~\ref{tab:sintese}). E uma
         meta-lição honesta o atravessa: \emph{toda detecção por limiar tem um regime em que sinal
         e fundo se confundem} --- o núcleo do aglomerado e a cultura seca na lavoura.
 \end{enumerate}
@@ -672,7 +675,7 @@ Imagem        & drone RGB (campo e lavoura)    & Hubble (aglomerado M13) \\
 Assinatura    & verde dominante (ExG / ExGR)   & brilho pontual (ponto claro) \\
 Limiar        & absoluto (0) + trava HSV       & Otsu automático \\
 O que se mede & \% de cobertura vegetal        & contagem de objetos \\
-Resultado     & 63,8\% / 40,2\%               & 17.216 estrelas detectadas \\
+Resultado     & 63,8\% / 40,2\%               & 17.325 estrelas detectadas \\
 Limite        & cultura seca/esparsa           & núcleo denso (fusão de componentes) \\
 \bottomrule
 \end{tabular}

@@ -158,7 +158,7 @@
     <em>quais pixels são vegetação e qual o percentual de cobertura</em>. E que, no fim,
     se mostra maior do que o verde.</p>
     <p class="lead" style="margin-top:26px; font-size:17px"><b>Gilberto de Paiva Melo</b> · Ciência da Computação</p>
-    <p class="hint">Navegue com <kbd>←</kbd> <kbd>→</kbd> ou <kbd>espaço</kbd> · alterne o tema com <kbd>D</kbd></p>
+    <p class="hint" style="display:none">Navegue com <kbd>←</kbd> <kbd>→</kbd> ou <kbd>espaço</kbd> · alterne o tema com <kbd>D</kbd></p>
   </div>
 </section>
 
@@ -227,7 +227,7 @@
       <div class="step"><span class="n">6</span><b>Bordas (Canny)</b><span>3 pares de limiares comparados — 50/130 adotado</span></div>
       <div class="step"><span class="n">7</span><b>Segmentação</b><span>Otsu (brilho) vs. ExG (cor) + morfologia</span></div>
       <div class="step"><span class="n">8</span><b>Segmentação aprimorada</b><span>ExGR + trava HSV — o verde bem identificado</span></div>
-      <div class="step"><span class="n">9</span><b>Generalização</b><span>a mesma receita na astronomia — Hubble conta 17.216 estrelas</span></div>
+      <div class="step"><span class="n">9</span><b>Generalização</b><span>a mesma receita na astronomia — Hubble conta 17.325 estrelas</span></div>
     </div>
   </div>
 </section>
@@ -408,7 +408,7 @@
   <div class="eyebrow">Fecho da vegetação · todas as etapas num painel</div>
   <h2 class="serif">O pipeline de vegetação, completo</h2>
   <div class="fig" style="flex:1"><img src="../outputs/grid_pipeline_completo.png" alt="grid completo"></div>
-  <p class="caption" style="margin-top:12px">Original → cinza → 3 filtros → Canny → VARI → ExG → Otsu+morfologia → contornos ExG. <b>Próximo: a mesma estrutura conta 17.216 estrelas.</b></p>
+  <p class="caption" style="margin-top:12px">Original → cinza → 3 filtros → Canny → VARI → ExG → Otsu+morfologia → contornos ExG. <b>Próximo: a mesma estrutura conta 17.325 estrelas.</b></p>
 </section>
 
 <!-- 15 · GENERALIZAÇÃO ASTRONOMIA -->
@@ -417,14 +417,14 @@
   <h2 class="serif">A mesma receita conta estrelas</h2>
   <div class="fig" style="flex:1"><img src="../outputs/generalizacao_estrelas.png" alt="contagem de estrelas M13"></div>
   <div class="pivot">
-    <span class="tag">↳ Vegetação mede cobertura · óleo mede área · astronomia conta objetos</span>
+    <span class="tag">↳ Vegetação mede cobertura · astronomia conta objetos</span>
     <p>Imagem <b>Hubble (NASA/ESA)</b> do aglomerado <b>M13</b> (domínio público). Assinatura =
     <b>brilho</b>. O limiar global perdia as estrelas fracas (7.736). A versão final reusa
     <b>três peças do próprio projeto</b>: o <b>CLAHE</b> (equalização local de contraste) eleva
     as estrelas fracas em relação à vizinhança; o <b>white top-hat</b> (realce de contraste local —
     primo da equalização) extrai pontos brilhantes; e o <b>mesmo Otsu</b> da vegetação escolhe o
     corte automaticamente. O <b>mesmo</b> <code>connectedComponentsWithStats</code> do filtro de
-    área agora <b>conta</b>: <b>17.216 estrelas</b>. <em>No núcleo denso elas se fundem —
+    área agora <b>conta</b>: <b>17.325 estrelas</b>. <em>No núcleo denso elas se fundem —
     contagem = limite inferior.</em></p>
   </div>
 </section>
@@ -432,7 +432,7 @@
 <!-- SÍNTESE — três domínios -->
 <section class="slide">
   <div class="eyebrow">Síntese · a virada do projeto</div>
-  <h2 class="serif">Uma metodologia, três domínios</h2>
+  <h2 class="serif">Uma metodologia, dois domínios</h2>
   <p class="lead" style="margin-bottom:18px">Os mesmos cinco blocos — <b>assinatura → limiar
   absoluto → morfologia → componentes conexos → medida</b> — funcionam do campo agrícola ao
   telescópio espacial. Só muda a assinatura.</p>
@@ -442,7 +442,7 @@
     <tr><td><b>Assinatura</b></td><td>verde dominante (ExG / ExGR)</td><td>brilho pontual (ponto claro)</td></tr>
     <tr><td><b>Limiar</b></td><td>absoluto (0) + trava HSV</td><td>Otsu automático</td></tr>
     <tr><td><b>Mede</b></td><td>% de cobertura vegetal</td><td>contagem de objetos</td></tr>
-    <tr><td><b>Resultado</b></td><td class="hl">63,8% / 40,2%</td><td class="hl">17.216 estrelas</td></tr>
+    <tr><td><b>Resultado</b></td><td class="hl">63,8% / 40,2%</td><td class="hl">17.325 estrelas</td></tr>
     <tr><td><b>Limite honesto</b></td><td>cultura seca/esparsa</td><td>núcleo denso (fusão)</td></tr>
   </table>
   <p class="caption" style="margin-top:14px"><em>A meta-lição:</em> toda detecção por limiar tem um regime onde sinal e fundo se confundem — e isso é o mesmo nos dois domínios.</p>
@@ -455,9 +455,9 @@
   <div class="cols cols-3" style="flex:0 1 auto; margin-top:18px">
     <div class="card">
       <p class="big num">1</p>
-      <h3>Cor vence brilho</h3>
-      <p>Vale na vegetação (ExG &gt; Otsu, que pegou a estrada) <b>e</b> no óleo (cor quente
-      R−B &gt; brilho, que pegava nuvens). A cor é a assinatura; o brilho engana.</p>
+      <h3>Assinatura correta importa</h3>
+      <p>Na vegetação, ExG/ExGR venceu Otsu por brilho global: onde o brilho confundia estrada
+      e solo, a cor distinguia. Escolher a assinatura certa é o passo zero de qualquer detector.</p>
     </div>
     <div class="card">
       <p class="big num">2</p>
@@ -469,12 +469,12 @@
       <p class="big num">3</p>
       <h3>A contribuição é a metodologia</h3>
       <p>Os mesmos blocos mediram <b>% de cobertura vegetal</b> em campo agrícola e
-      <b>contagem de 17.216 estrelas</b> no aglomerado M13 (Hubble). Vale para qualquer alvo.</p>
+      <b>contagem de 17.325 estrelas</b> no aglomerado M13 (Hubble). Vale para qualquer alvo.</p>
     </div>
   </div>
   <div class="pivot" style="margin-top:26px">
     <span class="tag">Entregáveis</span>
-    <p>Notebook Jupyter com 15 etapas comentadas · Relatório técnico em LaTeX ·
+    <p>Notebook Jupyter com 14 etapas comentadas · Relatório técnico em LaTeX ·
     Imagens geradas em <code>outputs/</code> · Repositório Git com README de execução.</p>
   </div>
   <p class="lead serif" style="margin-top:30px; font-style:italic">Obrigado!</p>

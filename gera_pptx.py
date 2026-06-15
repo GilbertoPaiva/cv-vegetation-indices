@@ -207,7 +207,7 @@ steps = [
     ("6", "Bordas (Canny)",        "3 pares de limiares comparados — 50/130 adotado"),
     ("7", "Segmentação",           "Otsu (brilho) vs. ExG (cor) + morfologia"),
     ("8", "Seg. aprimorada",       "ExGR + trava HSV — o verde bem identificado"),
-    ("9", "Generalização",         "a mesma receita no petróleo (NASA) e na astronomia (Hubble)"),
+    ("9", "Generalização",         "a mesma receita na astronomia — Hubble conta 17.325 estrelas"),
 ]
 
 cw, ch = 3.87, 1.52
@@ -403,7 +403,7 @@ eye(sl, "Fecho da vegetação · todas as etapas num painel")
 h2(sl, "O pipeline de vegetação, completo")
 
 img(sl, outputs("grid_pipeline_completo.png"), 0.75, 1.88, 11.8, 4.92)
-t(sl, "Original → cinza → 3 filtros → Canny → VARI → ExG → Otsu+morfologia → contornos ExG   ·   Próximo: a mesma estrutura conta 17.216 estrelas",
+t(sl, "Original → cinza → 3 filtros → Canny → VARI → ExG → Otsu+morfologia → contornos ExG   ·   Próximo: a mesma estrutura conta 17.325 estrelas",
   0.75, 6.88, 11.8, 0.45, sz=11.5, color=MUTED, align=PP_ALIGN.CENTER)
 
 
@@ -420,7 +420,7 @@ pivot(sl, "Vegetação mede cobertura · astronomia conta objetos",
       "Limiar global perdia estrelas fracas (7.736). Versão final reusa 3 peças do projeto: "
       "CLAHE (equalização local) eleva as fracas; white top-hat (realce local) as extrai; "
       "e o mesmo Otsu escolhe o corte automático. O mesmo connectedComponentsWithStats CONTA: "
-      "17.216 estrelas. No núcleo denso elas se fundem — contagem = limite inferior.",
+      "17.325 estrelas. No núcleo denso elas se fundem — contagem = limite inferior.",
       0.75, 6.26, 11.8, 1.0)
 
 
@@ -440,7 +440,7 @@ trows    = [
     ["Assinatura",   "verde dominante (ExG/ExGR)",   "brilho pontual (ponto claro)"],
     ["Limiar",       "absoluto (0) + trava HSV",     "Otsu automático"],
     ["Mede",         "% de cobertura vegetal",       "contagem de objetos"],
-    ["Resultado",    "63,8% / 40,2%",                "17.216 estrelas detectadas"],
+    ["Resultado",    "63,8% / 40,2%",                "17.325 estrelas detectadas"],
     ["Limite",       "cultura seca/esparsa",         "núcleo denso (fusão)"],
 ]
 tbl(sl, theaders, trows, l=0.75, top=2.62, col_w=[2.7, 5.3, 4.8], row_h=0.62)
@@ -457,18 +457,18 @@ eye(sl, "Conclusões")
 h2(sl, "Três lições do projeto")
 
 cw3c, cy3c = 3.7, 1.93
-card(sl, 0.75,              cy3c, cw3c, 3.35, num="1", title="Cor vence brilho",
-     body_text="Vale na vegetação (ExG > Otsu, que pegou a estrada) e no óleo "
-               "(cor quente R−B > brilho, que pegava nuvens). A cor é a assinatura; o brilho engana.")
+card(sl, 0.75,              cy3c, cw3c, 3.35, num="1", title="Assinatura correta importa",
+     body_text="Na vegetação, ExG/ExGR venceu Otsu por brilho global: onde o brilho confundia "
+               "estrada e solo, a cor distinguia. Escolher a assinatura certa é o passo zero de qualquer detector.")
 card(sl, 0.75+cw3c+0.17,    cy3c, cw3c, 3.35, num="2", title="Índices divergentes denunciam erros",
      body_text="ExG alto + VARI negativo na lavoura = alarme de falso positivo. "
                "A segmentação final (ExGR + HSV + fechamento) resolveu: 97,7% → 40,2% de vegetação real.")
 card(sl, 0.75+2*(cw3c+0.17), cy3c, cw3c, 3.35, num="3", title="A contribuição é a metodologia",
      body_text="Os mesmos blocos mediram % de cobertura vegetal em campo agrícola e "
-               "contagem de 17.216 estrelas no aglomerado M13 (Hubble). Vale para qualquer alvo.")
+               "contagem de 17.325 estrelas no aglomerado M13 (Hubble). Vale para qualquer alvo.")
 
 pivot(sl, "Entregáveis",
-      "Notebook Jupyter com 15 etapas comentadas · Relatório técnico em LaTeX · "
+      "Notebook Jupyter com 14 etapas comentadas · Relatório técnico em LaTeX · "
       "Imagens geradas em outputs/ · Repositório Git com README de execução",
       0.75, 5.48, 11.8, 0.75)
 
