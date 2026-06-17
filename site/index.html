@@ -278,6 +278,16 @@
   <b>pixels acima de zero têm verde em excesso</b> — a base da segmentação.</p>
 </section>
 
+<!-- 6.1 · EQUALIZAÇÃO DE HISTOGRAMA -->
+<section class="slide">
+  <div class="eyebrow">Passo 3 · realce de contraste</div>
+  <h2 class="serif">Equalização — espalhar o brilho sem distorcer a cor</h2>
+  <div class="fig" style="flex:1"><img src="../outputs/equalizacao_histograma.png" alt="equalização de histograma"></div>
+  <p class="lead" style="margin-top:18px">Equaliza só a <b>luminância</b> (canal Y do YCrCb) — equalizar R, G, B
+  separadamente distorceria os matizes e quebraria a assinatura de cor de que os índices dependem.
+  Desvio-padrão do brilho: <b>49,4 → 72,2</b> — tons mais espalhados, mesma identidade de cor.</p>
+</section>
+
 <!-- 7 · ÍNDICES -->
 <section class="slide">
   <div class="eyebrow">Passo 4 · descoberta nº 2</div>
@@ -355,12 +365,14 @@
   <h2 class="serif">Como mostrar a detecção sem esconder a cena</h2>
   <div class="fig" style="flex:1"><img src="../outputs/segmentacao_exg.png" alt="segmentação ExG com destaque"></div>
   <div class="pivot">
-    <span class="tag">↳ Mudança de caminho (em duas tentativas)</span>
-    <p><b>1ª versão:</b> pintar os pixels detectados de verde sólido — com 88% de cobertura, a
-    imagem virava um bloco "estourado". <b>2ª versão:</b> verde translúcido — aceitável, mas
-    ainda tingia a cena. <b>Final:</b> <b>destaque por dessaturação</b> — a vegetação detectada
-    mantém a cor original e <em>o resto vira cinza</em>. Nada é pintado por cima: o que está
-    em cor é exatamente o que o algoritmo classificou.</p>
+    <span class="tag">↳ Evolução da visualização — mesma máscara, três representações</span>
+    <p>A figura mostra as três abordagens sobre a <b>mesma matriz binária</b> ExG&nbsp;&gt;&nbsp;0.
+    <b>1ª (verde sólido):</b> pinta o pixel detectado de verde puro — com 88% de cobertura a
+    imagem vira um bloco uniforme, perdendo contexto. <b>2ª (translúcido):</b> alpha-blend da
+    cor original com o verde — melhor, mas ainda "tinge" o resto da cena.
+    <b>Final (dessaturação):</b> a vegetação detectada <em>mantém sua cor original</em> e o
+    restante vira cinza escurecido. Nada é pintado por cima: o que está em cor é exatamente
+    o que a álgebra matricial classificou.</p>
   </div>
 </section>
 
@@ -372,12 +384,12 @@
   <div class="cols cols-2" style="flex:0 1 auto; margin-top:16px">
     <div class="card">
       <h3>campo-fazenda · índices concordam</h3>
-      <p>ExG <b>87,9%</b> e VARI médio <b>+0,14</b> → estimativa confiável.</p>
+      <p>ExG <b>87,9%</b> e VARI médio <b>+0,14</b> — ambos positivos, a cena é majoritariamente verde.</p>
     </div>
     <div class="card" style="border-color:var(--red-soft)">
       <h3>lavoura-solo · índices divergem ⚠</h3>
-      <p>ExG diz <b>97,7%</b>, mas o VARI é <b>negativo (−0,07)</b>. E o destaque entrega o erro:
-      o <b>solo marrom aparece em cor</b> — ou seja, foi incluído indevidamente na máscara.</p>
+      <p>ExG diz <b>97,9%</b>, mas o VARI é <b>negativo (−0,06)</b>. O mapa ExG entrega o erro:
+      o solo aparece <b>amarelo (ExG ≈ 0)</b> — próximo do limiar, mas incluído na máscara de 97,9%.</p>
     </div>
   </div>
 </section>
@@ -385,8 +397,8 @@
 <!-- 13 · RESOLUÇÃO -->
 <section class="slide">
   <div class="eyebrow">Passo 8 · a resolução</div>
-  <h2 class="serif">Histórico → final: o verde bem identificado</h2>
-  <div class="fig" style="flex:1"><img src="../outputs/segmentacao_aprimorada.png" alt="histórico para final"></div>
+  <h2 class="serif">ExG>0 → ExGR+HSV: o verde bem identificado</h2>
+  <div class="fig" style="flex:1"><img src="../outputs/segmentacao_aprimorada.png" alt="ExG>0 vs ExGR+HSV final"></div>
   <div class="cols cols-2" style="flex:0 1 auto; margin-top:16px">
     <div class="card">
       <h3>Como resolve</h3>
@@ -397,8 +409,8 @@
     </div>
     <div class="card" style="border-color:var(--clay)">
       <h3>Os números</h3>
-      <p>campo-fazenda: 86,7% → <span class="num" style="font-size:24px"><b>63,8%</b></span> (céu e estrada fora)<br>
-      lavoura-solo: 97,4% → <span class="num" style="font-size:24px"><b>40,2%</b></span> (solo fora, cultura verde preservada)</p>
+      <p>campo-fazenda: 87,9% → <span class="num" style="font-size:24px"><b>63,8%</b></span> (céu e estrada fora)<br>
+      lavoura-solo: 97,9% → <span class="num" style="font-size:24px"><b>40,2%</b></span> (solo fora, cultura verde preservada)</p>
     </div>
   </div>
 </section>
@@ -408,24 +420,51 @@
   <div class="eyebrow">Fecho da vegetação · todas as etapas num painel</div>
   <h2 class="serif">O pipeline de vegetação, completo</h2>
   <div class="fig" style="flex:1"><img src="../outputs/grid_pipeline_completo.png" alt="grid completo"></div>
-  <p class="caption" style="margin-top:12px">Original → cinza → 3 filtros → Canny → VARI → ExG → Otsu+morfologia → contornos ExG. <b>Próximo: a mesma estrutura conta 17.247 estrelas.</b></p>
+  <p class="caption" style="margin-top:12px">Original → cinza → 3 filtros → Canny → VARI → ExG → Otsu+morfologia → contornos ExG. <b>Próximo: por que essa estrutura funciona em qualquer domínio.</b></p>
 </section>
 
-<!-- 15 · GENERALIZAÇÃO ASTRONOMIA -->
+<!-- 15 · SLIDE MATEMÁTICO -->
 <section class="slide">
-  <div class="eyebrow">Passo 10 · a ideia original — espaço e telescópios</div>
-  <h2 class="serif">A mesma receita conta estrelas</h2>
+  <div class="eyebrow">Fundamento · por que a metodologia generaliza</div>
+  <h2 class="serif">A imagem é uma matriz — o pipeline é álgebra</h2>
+  <div class="cols cols-3" style="flex:1; margin-top:18px">
+    <div class="card">
+      <h3>Representação</h3>
+      <p style="font-family:monospace; font-size:14px; margin-bottom:10px">I ∈ ℝ<sup>H×W×3</sup></p>
+      <p>Cada pixel <b>I[i, j] = [R, G, B]</b> — um vetor de 3 números. Uma imagem de 1600×1065 é uma tabela com <b>1,7 milhão de células</b>, cada uma guardando três inteiros de 0 a 255.</p>
+    </div>
+    <div class="card">
+      <h3>Índice = função matricial</h3>
+      <p style="font-family:monospace; font-size:13px; margin-bottom:10px">ExG[i,j] = 2·G[i,j] − R[i,j] − B[i,j]</p>
+      <p>Operação <b>elemento a elemento</b> nas matrizes de canal — resultado é uma nova matriz escalar. A binarização <b>M[i,j] = 1 se ExG[i,j] &gt; 0</b> é o limiar de decisão.</p>
+    </div>
+    <div class="card">
+      <h3>Filtro = convolução</h3>
+      <p style="font-family:monospace; font-size:13px; margin-bottom:10px">O[i,j] = Σ<sub>k,l</sub> K[k,l]·I[i+k, j+l]</p>
+      <p>Um <b>kernel K</b> desliza sobre I calculando a combinação dos vizinhos. Gaussiano usa média ponderada; morfologia e CLAHE usam <b>máximo/mínimo local</b> — variações da mesma operação.</p>
+    </div>
+  </div>
+  <div class="pivot" style="margin-top:18px">
+    <span class="tag">↳ A generalização é matematicamente necessária, não coincidência</span>
+    <p>A binarização <b>M[i,j] = 1 se sinal[i,j] &gt; τ</b> não sabe o que é planta ou estrela — ela opera sobre <b>números em uma tabela</b>. Trocar a assinatura (ExG → brilho) mantém a álgebra intacta. No próximo slide: a prova empírica.</p>
+  </div>
+</section>
+
+<!-- 16 · GENERALIZAÇÃO ASTRONOMIA -->
+<section class="slide">
+  <div class="eyebrow">Passo 10 · prova empírica — a álgebra em novo domínio</div>
+  <h2 class="serif">A mesma álgebra matricial conta estrelas</h2>
   <div class="fig" style="flex:1"><img src="../outputs/generalizacao_estrelas.png" alt="contagem de estrelas M13"></div>
   <div class="pivot">
-    <span class="tag">↳ Vegetação mede cobertura · astronomia conta objetos</span>
-    <p>Imagem <b>Hubble (NASA/ESA)</b> do aglomerado <b>M13</b> (domínio público). Assinatura =
-    <b>brilho</b>. O limiar global perdia as estrelas fracas (7.736). A versão final reusa
-    <b>três peças do próprio projeto</b>: o <b>CLAHE</b> (equalização local de contraste) eleva
-    as estrelas fracas em relação à vizinhança; o <b>white top-hat</b> (realce de contraste local —
-    primo da equalização) extrai pontos brilhantes; e o <b>mesmo Otsu</b> da vegetação escolhe o
-    corte automaticamente. O <b>mesmo</b> <code>connectedComponentsWithStats</code> do filtro de
-    área agora <b>conta</b>: <b>17.247 estrelas</b>. <em>No núcleo denso elas se fundem —
-    contagem = limite inferior.</em></p>
+    <span class="tag">↳ Entrada diferente, operação matricial idêntica</span>
+    <p>Imagem <b>Hubble (NASA/ESA)</b> do aglomerado <b>M13</b> (domínio público).
+    Muda a assinatura e o pré-processamento específico do domínio — para estrelas:
+    CLAHE (realce de contraste local) + white top-hat (isola picos de brilho), em vez de ExGR+HSV.
+    O que permanece idêntico: <b>M[i,j] = 1 se sinal[i,j] &gt; τ (Otsu)</b> →
+    <code>connectedComponents</code> conta os blobs → medida. Resultado: <b>17.247 objetos resolvidos</b>.
+    <em>Limite honesto: no núcleo denso do aglomerado, estrelas vizinhas fundem-se em um único blob
+    na matriz binária — contagem é limite inferior, fenômeno inerente a qualquer binarização em
+    regiões de alta densidade (o mesmo problema da lavoura com fileiras finas).</em></p>
   </div>
 </section>
 
@@ -463,7 +502,7 @@
       <p class="big num">2</p>
       <h3>Índices que divergem denunciam erros</h3>
       <p>ExG alto + VARI negativo na lavoura = alarme de falso positivo. A segmentação
-      final (ExGR + HSV + fechamento) resolveu: 97% → 40,2% de vegetação real.</p>
+      final (ExGR + HSV + fechamento) resolveu: 97,9% → 40,2% de vegetação real.</p>
     </div>
     <div class="card">
       <p class="big num">3</p>
